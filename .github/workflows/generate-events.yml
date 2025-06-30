@@ -1,35 +1,31 @@
-name: Generate Events
+name: Generate Parkrun Events
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:  # allows manual trigger
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * 1' # Every Monday at 2am UTC
 
 jobs:
   generate:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Install dependencies
-        run: npm install
+      - name: Run generator script
+        run: node generate-events.js
 
-      - name: Run generation script
-        run: npm run generate
-
-      - name: Commit and push generated files
+      - name: Commit and push generated content
         run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'actions@github.com'
-          git add events/*.html
-          # Commit only if there are changes
-          git diff --cached --quiet || git commit -m "Add generated event HTML files"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add events/*.html sitemap.xml
+          git commit -m "Auto-update events and sitemap" || echo "No changes to commit"
           git push
