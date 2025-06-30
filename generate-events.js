@@ -140,11 +140,9 @@ function generateHtml(event) {
       background-color: #eee;
       font-size: 0.9rem;
     }
-    .toggle-buttons {
-      margin: 1rem 0;
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
+    .toggle-section {
+      text-align: center;
+      margin-bottom: 1rem;
     }
     .toggle-buttons button {
       background-color: #2e7d32;
@@ -153,6 +151,18 @@ function generateHtml(event) {
       padding: 0.5rem 1rem;
       border-radius: 0.5rem;
       cursor: pointer;
+      margin: 0 0.5rem;
+    }
+    .stay22-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-top: 2rem;
+      text-align: center;
+    }
+    .current-view {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #555;
     }
   </style>
 </head>
@@ -167,13 +177,21 @@ function generateHtml(event) {
     <h1>Accommodation near ${name} parkrun</h1>
     <p>${description}</p>
 
-    <div class="toggle-buttons">
-      <button onclick="showIframe('list')">List View</button>
-      <button onclick="showIframe('map')">Map View</button>
+    <div class="iframe-container">
+      <iframe src="https://www.parkrunnertourist.co.uk/main" title="Cafes and campsites map"></iframe>
+    </div>
+
+    <div class="stay22-title">Hotel Prices near ${name} parkrun</div>
+
+    <div class="toggle-section">
+      <div class="toggle-buttons">
+        <button onclick="showIframe('list')">List View</button>
+        <button onclick="showIframe('map')">Map View</button>
+      </div>
+      <div id="currentView" class="current-view">Currently showing: List View</div>
     </div>
 
     <div class="iframe-container">
-      <iframe src="https://www.parkrunnertourist.co.uk/main" title="Cafes and campsites map"></iframe>
       <iframe id="stay22Frame" src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedVenue}&viewmode=listview&listviewexpand=true" title="Stay22 accommodation"></iframe>
     </div>
   </main>
@@ -198,6 +216,7 @@ function generateHtml(event) {
     function showIframe(mode) {
       const frame = document.getElementById('stay22Frame');
       frame.src = \`https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedVenue}&viewmode=\${mode}view&listviewexpand=true\`;
+      document.getElementById('currentView').innerText = 'Currently showing: ' + (mode === 'list' ? 'List View' : 'Map View');
     }
   </script>
 
@@ -251,8 +270,8 @@ async function main() {
     }
 
     const sitemapContent = generateSitemap(slugs);
-    fs.writeFileSync(path.join('./sitemap.xml'), sitemapContent, 'utf-8'); // 🔥 Save in root
-    console.log('Generated sitemap.xml in root directory');
+    fs.writeFileSync(path.join(OUTPUT_DIR, 'sitemap.xml'), sitemapContent, 'utf-8');
+    console.log('Generated sitemap.xml in events folder');
 
     console.log(`Successfully generated ${selectedEvents.length} event HTML files.`);
   } catch (err) {
