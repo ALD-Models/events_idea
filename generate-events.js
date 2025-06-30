@@ -1,12 +1,11 @@
-import fs from 'fs';
-import path from 'path';
-import https from 'https';
+const fs = require('fs');
+const path = require('path');
+const https = require('https');
 
 const EVENTS_URL = 'https://raw.githubusercontent.com/ALD-Models/Testing/refs/heads/main/events1.json';
 const OUTPUT_DIR = path.join(process.cwd(), 'events');
 const MAX_EVENTS = 10; // for testing limit
 
-// Helper to fetch JSON from URL
 function fetchJSON(url) {
   return new Promise((resolve, reject) => {
     https.get(url, (res) => {
@@ -24,17 +23,15 @@ function fetchJSON(url) {
   });
 }
 
-// Sanitize string for URL slug
 function slugify(text) {
   return text.toString().toLowerCase()
-    .replace(/\s+/g, '-')           // Replace spaces with -
-    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-    .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-    .replace(/^-+/, '')             // Trim - from start
-    .replace(/-+$/, '');            // Trim - from end
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
 }
 
-// Create output directory if missing
 if (!fs.existsSync(OUTPUT_DIR)) {
   fs.mkdirSync(OUTPUT_DIR);
 }
@@ -50,12 +47,10 @@ async function main() {
 
     const features = data.events.features.slice(0, MAX_EVENTS);
 
-    // Clear old files
     fs.readdirSync(OUTPUT_DIR).forEach(file => {
       if (file.endsWith('.html')) fs.unlinkSync(path.join(OUTPUT_DIR, file));
     });
 
-    // Generate each event HTML
     features.forEach(feature => {
       const props = feature.properties || {};
       const eventName = props.EventLongName || props.eventname || 'unknown-event';
@@ -104,7 +99,6 @@ async function main() {
       console.log(`Generated ${slug}.html`);
     });
 
-    // Generate sitemap.xml
     const sitemapUrls = features.map(f => {
       const slug = slugify(f.properties.EventLongName || f.properties.eventname || 'unknown-event');
       return `<url><loc>https://yourdomain.com/events/${slug}.html</loc></url>`;
