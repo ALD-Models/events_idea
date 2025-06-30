@@ -11,7 +11,6 @@ if (!fs.existsSync(OUTPUT_DIR)) {
   fs.mkdirSync(OUTPUT_DIR);
 }
 
-// Fetch JSON helper
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
     https.get(url, (res) => {
@@ -19,8 +18,7 @@ function fetchJson(url) {
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
         try {
-          const json = JSON.parse(data);
-          resolve(json);
+          resolve(JSON.parse(data));
         } catch (e) {
           reject(e);
         }
@@ -29,35 +27,19 @@ function fetchJson(url) {
   });
 }
 
-// Slugify event names for filenames and URLs
 function slugify(name) {
   return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
 }
 
-// Calculate next Friday's date in YYYY-MM-DD format
+// Get next Friday date as YYYY-MM-DD
 function getNextFridayDateISO() {
   const today = new Date();
-  const day = today.getDay(); // Sunday=0 ... Friday=5
-  const diff = (5 - day + 7) % 7 || 7; // Days until next Friday
-  today.setDate(today.getDate() + diff);
+  const day = today.getDay();
+  const daysUntilFriday = (5 - day + 7) % 7 || 7;
+  today.setDate(today.getDate() + daysUntilFriday);
   return today.toISOString().slice(0, 10);
 }
 
-// SEO helpers
-function getSeoDescription(text) {
-  if (!text) return 'Find accommodation near this parkrun event.';
-  const stripped = text.replace(/(<([^>]+)>)/gi, '').trim();
-  return stripped.length > 150 ? stripped.slice(0, 147) + '...' : stripped;
-}
-
-function getSeoKeywords(name, location) {
-  const base = ['parkrun', 'accommodation', 'hotel', 'stay', 'tourist', 'travel'];
-  if (name) base.push(...name.toLowerCase().split(' '));
-  if (location) base.push(...location.toLowerCase().split(' '));
-  return Array.from(new Set(base)).join(', ');
-}
-
-// Generate HTML content for each event page
 function generateHtml(event) {
   const name = event.properties.eventname || 'Unknown event';
   const location = event.properties.EventLocation || '';
@@ -68,6 +50,12 @@ function generateHtml(event) {
   const encodedName = encodeURIComponent(`${name} parkrun`);
   const checkinDate = getNextFridayDateISO();
   const pageTitle = `Accommodation near ${name} parkrun`;
+
+  // Stay22 iframe base URL with scroll locking via scrolling="no"
+  const stay22BaseUrl = `https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedName}`;
+
+  // Main iframe URL with lat/lon and zoom=13 as requested
+  const mainIframeUrl = `https://parkrunnertourist.co.uk/main?lat=${latitude}&lon=${longitude}&zoom=13`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -137,11 +125,11 @@ function generateHtml(event) {
 
   <div class="iframe-container">
     <iframe id="stay22Frame" scrolling="no"
-      src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedName}&viewmode=listview&listviewexpand=true"
+      src="${stay22BaseUrl}&viewmode=listview&listviewexpand=true"
       title="Stay22 accommodation listing">
     </iframe>
 
-    <iframe src="https://parkrunnertourist.co.uk/main?lat=${latitude}&lon=${longitude}&zoom=13" title="Parkrun Map"></iframe>
+    <iframe src="${mainIframeUrl}" title="Parkrun Map"></iframe>
   </div>
 </main>
 
@@ -162,7 +150,7 @@ function generateHtml(event) {
 <script>
   function switchView(mode) {
     const iframe = document.getElementById('stay22Frame');
-    const baseUrl = "https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedName}";
+    const baseUrl = "${stay22BaseUrl}";
     iframe.src = baseUrl + "&viewmode=" + mode + "&listviewexpand=" + (mode === 'listview');
     document.getElementById('current-view').textContent = "Currently Showing: " + (mode === 'map' ? "Map View" : "List View");
     document.getElementById('btn-listview').classList.toggle('active', mode === 'listview');
@@ -174,7 +162,6 @@ function generateHtml(event) {
 </html>`;
 }
 
-// Generate sitemap.xml content
 function generateSitemap(slugs) {
   const today = new Date().toISOString().slice(0, 10);
   const urlset = slugs.map(slug => `
@@ -192,7 +179,6 @@ ${urlset}
 </urlset>`;
 }
 
-// Main function to fetch data, generate HTML files and sitemap
 async function main() {
   try {
     console.log('Fetching events JSON...');
@@ -225,7 +211,7 @@ async function main() {
       console.log(`Generated: ${filename}`);
     }
 
-    // Save sitemap.xml in project root (not inside events folder)
+    // Save sitemap.xml in root directory
     const sitemapContent = generateSitemap(slugs);
     fs.writeFileSync('./sitemap.xml', sitemapContent, 'utf-8');
     console.log('Generated sitemap.xml in root folder.');
