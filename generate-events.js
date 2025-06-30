@@ -1,7 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const events = JSON.parse(fs.readFileSync('./events.json', 'utf-8')).slice(0, 10); // max 10 for testing
+const data = JSON.parse(fs.readFileSync('./events.json', 'utf-8'));
+const events = data.events.features.slice(0, 10); // first 10 events for testing
 
 const outputDir = path.join(__dirname, 'events');
 if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
