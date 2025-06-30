@@ -1,33 +1,26 @@
-name: Generate Event Pages
+name: Generate Parkrun Event Pages
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:  # <-- allows manual triggering in Actions tab
 
 jobs:
-  build:
+  generate:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-    - name: Install dependencies (if any)
-      run: npm install
+      - name: Install dependencies
+        run: npm install
 
-    - name: Generate event pages and sitemap
-      run: node generate-events.js
-
-    - name: Commit and push generated files
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add events/
-        git commit -m "Auto-generate event pages and sitemap" || echo "No changes to commit"
-        git push
+      - name: Generate event pages
+        run: npm run generate
