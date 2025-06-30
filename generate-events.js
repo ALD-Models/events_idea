@@ -7,10 +7,7 @@ const OUTPUT_DIR = './events';
 const MAX_EVENTS = 10;
 const BASE_URL = 'https://www.parkrunnertourist.co.uk/events';
 
-if (!fs.existsSync(OUTPUT_DIR)) {
-  fs.mkdirSync(OUTPUT_DIR);
-}
-
+// Helper: fetch JSON over HTTPS
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
     https.get(url, (res) => {
@@ -27,11 +24,12 @@ function fetchJson(url) {
   });
 }
 
+// Slugify event name for URLs
 function slugify(name) {
   return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
 }
 
-// Get next Friday date as YYYY-MM-DD
+// Get next Friday date ISO string (YYYY-MM-DD)
 function getNextFridayDateISO() {
   const today = new Date();
   const day = today.getDay();
@@ -40,16 +38,37 @@ function getNextFridayDateISO() {
   return today.toISOString().slice(0, 10);
 }
 
-function generateHtml(event) {
+// Stub for fetching Wikipedia description about the parkrun location.
+// In a real environment, you might call a Wikipedia API or scrape pages.
+// This just simulates async behavior and returns null to fallback to event description.
+async function fetchWikipediaDescription(eventName) {
+  // Example: map eventName "Bushy Park" -> wikipedia URL: https://en.wikipedia.org/wiki/Bushy_Park
+  // Then scrape or call API for extract about the parkrun.
+  // For now, return null to use fallback
+  return null;
+}
+
+// Generate the HTML content for each event page
+async function generateHtml(event) {
   const name = event.properties.eventname || 'Unknown event';
   const location = event.properties.EventLocation || '';
-  const description = event.properties.EventDescription || 'No description available.';
   const coords = event.geometry.coordinates || [];
   const latitude = coords[1] || 0;
   const longitude = coords[0] || 0;
   const encodedName = encodeURIComponent(`${name} parkrun`);
   const checkinDate = getNextFridayDateISO();
   const pageTitle = `Accommodation near ${name} parkrun`;
+
+  // Try to get Wikipedia description
+  let description = event.properties.EventDescription || 'No description available.';
+  const wikiDesc = await fetchWikipediaDescription(name);
+  if (wikiDesc && wikiDesc.length > 50) {
+    // Embed the Wikipedia description with a mention & link
+    description = `<p>${wikiDesc}</p><p><em>Source: <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(name.replace(/\s+/g, '_'))}" target="_blank" rel="noopener noreferrer">Wikipedia</a></em></p>`;
+  } else {
+    // Just escape HTML for safety
+    description = `<p>${description.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
+  }
 
   // Stay22 iframe base URL with scroll locking via scrolling="no"
   const stay22BaseUrl = `https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedName}`;
@@ -68,6 +87,33 @@ function generateHtml(event) {
   <link rel="canonical" href="${BASE_URL}/${slugify(name)}.html" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+    }
+    header {
+      background-color: #2e7d32;
+      color: white;
+      padding: 1rem 2rem;
+      font-family: 'Georgia', serif;
+      font-weight: bold;
+      font-size: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header a {
+      color: white;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    main {
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
     .iframe-container {
       display: flex;
       flex-direction: row;
@@ -81,46 +127,73 @@ function generateHtml(event) {
       border: none;
       overflow: hidden;
     }
-    .download-footer img {
-      height: 70px;
-      transition: transform 0.3s ease;
-    }
-    .download-footer img:hover {
-      transform: scale(1.1);
-    }
+    /* Toggle buttons */
     .toggle-btn {
       padding: 0.5rem 1rem;
       border-radius: 0.5rem;
       margin-right: 0.5rem;
       cursor: pointer;
       font-weight: bold;
-      border: 2px solid transparent;
+      border: none;
       transition: all 0.3s ease;
+      background-color: #4caf50;
+      color: white;
+      user-select: none;
+    }
+    .toggle-btn:hover:not(.active) {
+      background-color: #388e3c;
     }
     .toggle-btn.active {
-      background-color: #2e7d32;
-      color: white;
-      border-color: #1b4d22;
+      background-color: #1b4d22;
+      color: #c8e6c9;
       font-size: 1.1rem;
+    }
+
+    /* Download footer */
+    .download-footer {
+      background-color: #4caf50;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      color: white;
+      font-weight: bold;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+    }
+    .download-footer img {
+      height: 60px;
+      width: auto;
+      background: none;
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
+    .download-footer img:hover {
+      transform: scale(1.1);
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
     }
   </style>
 </head>
 <body>
 
-<header class="flex justify-between items-center bg-green-700 text-white p-4 text-xl">
-  <div>parkrunner tourist</div>
-  <div>accommodation near ${name} parkrun</div>
+<header>
+  <a href="https://www.parkrunnertourist.co.uk" target="_self" title="Go to parkrunner tourist homepage">parkrunner tourist</a>
+  <div><!-- empty - removed accommodation text --></div>
 </header>
 
-<main class="p-6">
-  <h1 class="text-2xl mb-4">Accommodation near ${name} parkrun</h1>
-  <p class="mb-6">${description}</p>
+<main>
+  <h1>Accommodation near ${name} parkrun</h1>
+  ${description}
 
   <h2 class="text-xl font-semibold mb-2">Hotel Prices</h2>
   <div class="mb-4">
     <button class="toggle-btn active" onclick="switchView('listview')" id="btn-listview">List View</button>
     <button class="toggle-btn" onclick="switchView('map')" id="btn-map">Map View</button>
-    <span id="current-view" class="ml-4 text-green-700 font-bold">Currently Showing: List View</span>
   </div>
 
   <div class="iframe-container">
@@ -133,17 +206,19 @@ function generateHtml(event) {
   </div>
 </main>
 
-<div class="download-footer bg-green-600 flex justify-center gap-4 p-4 mt-8">
-  <div class="text-white font-bold text-lg mr-4 self-center">DOWNLOAD THE APP</div>
-  <a href="https://apps.apple.com/gb/app/parkrunner-tourist/id6743163993" target="_blank" rel="noopener noreferrer">
-    <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" />
-  </a>
-  <a href="https://play.google.com/store/apps/details?id=appinventor.ai_jlofty8.parkrunner_tourist" target="_blank" rel="noopener noreferrer">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" />
-  </a>
+<div class="download-footer">
+  DOWNLOAD THE APP
+  <div class="flex gap-4">
+    <a href="https://apps.apple.com/gb/app/parkrunner-tourist/id6743163993" target="_blank" rel="noopener noreferrer">
+      <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" />
+    </a>
+    <a href="https://play.google.com/store/apps/details?id=appinventor.ai_jlofty8.parkrunner_tourist" target="_blank" rel="noopener noreferrer">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" />
+    </a>
+  </div>
 </div>
 
-<footer class="text-center py-4">
+<footer>
   &copy; ${new Date().getFullYear()} parkrunner tourist
 </footer>
 
@@ -152,7 +227,6 @@ function generateHtml(event) {
     const iframe = document.getElementById('stay22Frame');
     const baseUrl = "${stay22BaseUrl}";
     iframe.src = baseUrl + "&viewmode=" + mode + "&listviewexpand=" + (mode === 'listview');
-    document.getElementById('current-view').textContent = "Currently Showing: " + (mode === 'map' ? "Map View" : "List View");
     document.getElementById('btn-listview').classList.toggle('active', mode === 'listview');
     document.getElementById('btn-map').classList.toggle('active', mode === 'map');
   }
@@ -162,6 +236,7 @@ function generateHtml(event) {
 </html>`;
 }
 
+// Sitemap XML generator
 function generateSitemap(slugs) {
   const today = new Date().toISOString().slice(0, 10);
   const urlset = slugs.map(slug => `
@@ -206,7 +281,7 @@ async function main() {
       const slug = slugify(event.properties.eventname);
       slugs.push(slug);
       const filename = path.join(OUTPUT_DIR, `${slug}.html`);
-      const htmlContent = generateHtml(event);
+      const htmlContent = await generateHtml(event);
       fs.writeFileSync(filename, htmlContent, 'utf-8');
       console.log(`Generated: ${filename}`);
     }
