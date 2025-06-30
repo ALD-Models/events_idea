@@ -1,344 +1,209 @@
 const fs = require('fs');
 const path = require('path');
 
-const data = JSON.parse(fs.readFileSync('./events.json', 'utf-8'));
-const events = data.events.features; // all events, no slice
+const OUTPUT_DIR = path.join(__dirname, 'events');
+const EVENTS_FILE = path.join(__dirname, 'events.json');
+const MAX_EVENTS = 10;
 
-const outputDir = path.join(__dirname, 'events');
-if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
-
-function escapeHTML(str) {
-  return str.replace(/[&<>'"]/g, tag => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    "'": '&#39;',
-    '"': '&quot;',
-  })[tag]);
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .replace(/\s+/g, '-')        // Replace spaces with -
+    .replace(/[^a-z0-9\-]/g, '') // Remove all non-alphanumeric and non-dash chars
+    .replace(/\-+/g, '-')        // Replace multiple - with single -
+    .replace(/^\-+|\-+$/g, '');  // Trim - from start/end
 }
 
-// The HTML template, with placeholders replaced by event data
-function renderHTML(event) {
-  const {
-    name,
-    lat,
-    lng,
-    description,
-    encodedName
-  } = event;
+function generateHTML(event) {
+  const title = `accommodation near ${event.name.toLowerCase()}`;
+  const description = event.description || 'Find nearby accommodation for your parkrun event.';
+  const googlePlayURL = 'https://play.google.com/store/apps/details?id=uk.co.parkrunnertourist.app';
+  const appStoreURL = 'https://apps.apple.com/gb/app/parkrunner-tourist/id6743163993';
 
   return `<!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>accommodation near ${escapeHTML(name)}</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    :root {
-      --primary-color: #4CAF50;
-      --primary-dark: #2E7D32;
-      --primary-light: #E8F5E9;
-      --text-color: #2b2b2b;
-      --text-light: #4a4a4a;
-      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-      --font-sf-pro: "SF Pro Text", "SF Pro Display", "SF Pro Icons", "Helvetica Neue", sans-serif;
-    }
-
-    body {
-      font-family: var(--font-sf-pro), var(--font-sans);
-      background: linear-gradient(135deg, var(--primary-light), #fefefe);
-      color: var(--text-color);
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    header.top-header {
-      background-color: var(--primary-dark);
-      padding: 1.25rem 2rem;
-      text-align: center;
-      font-family: 'Inter', sans-serif;
-      font-weight: 700;
-      font-size: 1.875rem;
-      color: white;
-      user-select: none;
-      cursor: pointer;
-      text-transform: lowercase;
-      letter-spacing: 0.06em;
-      transition: background-color 0.3s ease;
-      box-shadow: 0 4px 15px rgb(46 125 50 / 0.6);
-    }
-    header.top-header:hover {
-      background-color: #256029;
-    }
-    header.top-header a {
-      color: white;
-      text-decoration: none;
-    }
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${title}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display&display=swap');
+  :root {
+    --primary-color: #4CAF50;
+    --primary-dark: #2E7D32;
+    --primary-light: #E8F5E9;
+  }
+  body {
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+      Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    margin: 0; padding: 0;
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
+  }
+  header {
+    background-color: var(--primary-dark);
+    padding: 1rem;
+    color: white;
+    font-weight: 700;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+  header a {
+    color: white;
+    text-decoration: none;
+  }
+  main {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .hotels {
+    flex: 1 1 300px;
+    background: white;
+    padding: 1rem;
+    border-radius: 6px;
+  }
+  .map {
+    flex: 1 1 300px;
+    background: white;
+    padding: 1rem;
+    border-radius: 6px;
+  }
+  h1 {
+    text-transform: lowercase;
+  }
+  iframe {
+    width: 100%;
+    height: 300px;
+    border: none;
+    border-radius: 6px;
+  }
+  footer {
+    background-color: var(--primary-dark);
+    color: white;
+    text-align: center;
+    padding: 1rem;
+  }
+  .app-links img {
+    height: 48px;
+    margin: 0 10px;
+    vertical-align: middle;
+    cursor: pointer;
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.3));
+  }
+  @media (max-width: 600px) {
     main {
-      max-width: 900px;
-      margin: 2rem auto 3rem;
-      padding: 0 1rem;
-      flex-grow: 1;
-    }
-
-    h1 {
-      color: var(--primary-dark);
-      text-transform: lowercase;
-      font-weight: 800;
-      font-size: 2.25rem;
-      letter-spacing: 0.02em;
-      margin-bottom: 0.5rem;
-    }
-    h2 {
-      color: var(--primary-dark);
-      font-weight: 700;
-      font-size: 1.25rem;
-      margin-bottom: 1rem;
-      text-transform: none;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    a.directions-link {
-      display: inline-block;
-      margin-bottom: 2rem;
-      font-size: 1.125rem;
-      color: var(--primary-dark);
-      border: 2px solid var(--primary-dark);
-      padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      transition: background-color 0.3s ease, color 0.3s ease;
-      text-decoration: none;
-      user-select: none;
-    }
-    a.directions-link:hover,
-    a.directions-link:focus {
-      background-color: var(--primary-dark);
-      color: white;
-      outline: none;
-      text-decoration: none;
-      box-shadow: 0 0 10px var(--primary-dark);
-    }
-
-    .event-description {
-      font-size: 1.125rem;
-      color: var(--text-light);
-      line-height: 1.6;
-      max-width: 850px;
-      margin-bottom: 3rem;
-      font-weight: 400;
-    }
-
-    .grid-container {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
-    @media (min-width: 768px) {
-      .grid-container {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 767px) {
-      .grid-container {
-        display: flex;
-        flex-direction: column;
-      }
-      section.find-accommodation {
-        order: -1;
-      }
-    }
-
-    section {
-      background: white;
-      padding: 1.75rem 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 6px 16px rgb(0 0 0 / 0.08);
-      display: flex;
       flex-direction: column;
     }
-
-    iframe {
-      border: none;
-      border-radius: 1rem;
-      width: 100%;
-      height: 480px;
-      box-shadow: 0 6px 20px rgb(0 0 0 / 0.1);
-      transition: box-shadow 0.3s ease;
-      flex-grow: 1;
+    .map {
+      order: 1;
     }
-    iframe:hover,
-    iframe:focus {
-      box-shadow: 0 12px 28px rgb(0 0 0 / 0.15);
-      outline: none;
+    .hotels {
+      order: 2;
     }
-
-    .download-footer {
-      background: var(--primary-color);
-      padding: 1.5rem 2rem;
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      align-items: center;
-      flex-wrap: wrap;
-      border-radius: 0.75rem 0.75rem 0 0;
-      box-shadow: 0 0 30px rgba(76, 175, 80, 0.45);
-      user-select: none;
-    }
-    .download-footer span {
-      color: white;
-      font-weight: 700;
-      font-size: 1.2rem;
-      margin-right: 0.8rem;
-      white-space: nowrap;
-    }
-
-    .download-btn {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.5rem 1.25rem;
-      border-radius: 0.5rem;
-      background: white;
-      box-shadow: 0 5px 12px rgba(0,0,0,0.12);
-      transition: box-shadow 0.3s ease, transform 0.15s ease;
-      text-decoration: none;
-      user-select: none;
-      min-height: 48px;
-    }
-    .download-btn:hover,
-    .download-btn:focus {
-      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-      transform: translateY(-2px);
-      outline: none;
-    }
-    .download-btn img {
-      height: 28px;
-      margin-right: 0.75rem;
-      user-select: none;
-      pointer-events: none;
-      object-fit: contain;
-      width: auto;
-    }
-    .download-btn span {
-      font-weight: 600;
-      color: var(--text-color);
-      font-size: 1rem;
-      white-space: nowrap;
-    }
-
-    footer {
-      text-align: center;
-      font-size: 0.9rem;
-      color: var(--text-light);
-      margin-top: auto;
-      padding: 1.5rem 1rem 3rem;
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
 
-  <header class="top-header" role="banner">
-    <a href="https://www.parkrunnertourist.co.uk" target="_blank" rel="noopener noreferrer" aria-label="Visit parkrun tourist homepage">
-      parkrun tourist
+<header onclick="window.open('https://www.parkrunnertourist.co.uk', '_blank')">
+  parkrunnertourist
+</header>
+
+<main>
+  <section class="map">
+    <h2>find accommodation</h2>
+    <iframe src="https://www.parkrunnertourist.co.uk/main" title="Accommodation Map"></iframe>
+  </section>
+  
+  <section class="hotels">
+    <h2>nearby hotel prices</h2>
+    <p>${description}</p>
+    <!-- Here you would ideally integrate Stay22 or similar hotel listings -->
+    <ul>
+      <li>Hotel A - £100</li>
+      <li>Hotel B - £80</li>
+      <li>Hotel C - £120</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <div>download the app</div>
+  <div class="app-links">
+    <a href="${appStoreURL}" target="_blank" rel="noopener noreferrer">
+      <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" />
     </a>
-  </header>
-
-  <main>
-    <h1>accommodation near ${escapeHTML(name)}</h1>
-
-    <a
-      href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="directions-link"
-      aria-label="Get directions to ${escapeHTML(name)}"
-    >click for directions</a>
-
-    <div class="event-description">
-      ${escapeHTML(description)}
-    </div>
-
-    <div class="grid-container">
-      <section class="find-accommodation" aria-label="Find accommodation">
-        <h2>📍 find accommodation</h2>
-        <iframe
-          src="https://www.parkrunnertourist.co.uk/main"
-          loading="lazy"
-          title="Parkrun tourist map and info"
-          tabindex="0"
-        ></iframe>
-      </section>
-
-      <section aria-label="Nearby hotel prices">
-        <h2>🛏️ nearby hotel prices</h2>
-        <iframe
-          src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${lat}&lng=${lng}&mapType=classic&display=list&venue=${encodedName}"
-          loading="lazy"
-          title="Nearby hotels list"
-          tabindex="0"
-        ></iframe>
-      </section>
-    </div>
-  </main>
-
-  <div class="download-footer" role="contentinfo" aria-label="Download the parkrun tourist app">
-    <span>Download the app:</span>
-
-    <a href="https://apps.apple.com/gb/app/parkrunner-tourist/id6743163993" target="_blank" rel="noopener noreferrer" class="download-btn" aria-label="Download on the App Store">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple logo" />
-      <span>App Store</span>
-    </a>
-
-    <a href="https://play.google.com/store/apps/details?id=uk.co.parkrunnertourist" target="_blank" rel="noopener noreferrer" class="download-btn" aria-label="Download on Google Play">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play logo" style="height:28px; width:auto; margin-right: 0;" />
+    <a href="${googlePlayURL}" target="_blank" rel="noopener noreferrer">
+      <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" />
     </a>
   </div>
-
-  <footer>
-    &copy; 2025 parkrun tourist | generated for <strong>${escapeHTML(name)}</strong>
-  </footer>
+</footer>
 
 </body>
 </html>`;
 }
 
-// Write all event HTML files
-events.forEach(event => {
-  // slugify filename: replace spaces, lowercase
-  const slug = event.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
-  const filename = path.join(outputDir, `${slug}.html`);
-  fs.writeFileSync(filename, renderHTML(event), 'utf-8');
-  console.log(`Generated ${filename}`);
-});
+function generateSitemap(pages) {
+  const urls = pages.map(slug => {
+    return `<url><loc>https://yourdomain.com/events/${slug}.html</loc></url>`;
+  }).join('\n');
 
-// Generate sitemap.xml
-const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset
-  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
->
-${events
-  .map(event => {
-    const slug = event.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
-    return `  <url>
-    <loc>https://www.parkrunnertourist.co.uk/events/${slug}.html</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`;
-  })
-  .join('\n')}
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
 </urlset>`;
+}
 
-fs.writeFileSync(path.join(outputDir, 'sitemap.xml'), sitemapContent, 'utf-8');
-console.log('Generated sitemap.xml');
+function main() {
+  if (!fs.existsSync(EVENTS_FILE)) {
+    console.error(`Missing events file: ${EVENTS_FILE}`);
+    process.exit(1);
+  }
+
+  let eventsRaw = fs.readFileSync(EVENTS_FILE, 'utf-8');
+  let events;
+
+  try {
+    events = JSON.parse(eventsRaw);
+  } catch (e) {
+    console.error('Failed to parse events.json:', e);
+    process.exit(1);
+  }
+
+  if (!Array.isArray(events)) {
+    console.error('Events JSON should be an array.');
+    process.exit(1);
+  }
+
+  // Limit for testing
+  events = events.slice(0, MAX_EVENTS);
+
+  if (!fs.existsSync(OUTPUT_DIR)) {
+    fs.mkdirSync(OUTPUT_DIR);
+  }
+
+  const generatedSlugs = [];
+
+  events.forEach(event => {
+    if (!event.name) {
+      console.warn('Skipping event missing name:', event);
+      return;
+    }
+    const slug = slugify(event.name);
+    generatedSlugs.push(slug);
+
+    const html = generateHTML(event);
+    const filePath = path.join(OUTPUT_DIR, `${slug}.html`);
+    fs.writeFileSync(filePath, html, 'utf-8');
+    console.log(`Generated ${filePath}`);
+  });
+
+  // Generate sitemap.xml in root folder
+  const sitemapContent = generateSitemap(generatedSlugs);
+  fs.writeFileSync(path.join(__dirname, 'sitemap.xml'), sitemapContent, 'utf-8');
+  console.log('Generated sitemap.xml');
+}
+
+main();
