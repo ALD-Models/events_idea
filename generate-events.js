@@ -6,57 +6,50 @@ const EVENTS_URL = 'https://raw.githubusercontent.com/ALD-Models/Testing/refs/he
 const OUTPUT_DIR = './events';
 const MAX_EVENTS = 10;
 
-if (!fs.existsSync(OUTPUT_DIR)) {
+// Ensure output directory exists
+if (!fs.existsSync(OUTPUT_DIR)){
   fs.mkdirSync(OUTPUT_DIR);
 }
 
+// Helper to fetch JSON from URL
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
     https.get(url, (res) => {
       let data = '';
-      res.on('data', chunk => (data += chunk));
+      res.on('data', chunk => data += chunk);
       res.on('end', () => {
         try {
-          resolve(JSON.parse(data));
-        } catch (err) {
-          reject(err);
+          const json = JSON.parse(data);
+          resolve(json);
+        } catch (e) {
+          reject(e);
         }
       });
-    }).on('error', reject);
+    }).on('error', (err) => reject(err));
   });
 }
 
+// Generate slug from eventname
 function slugify(name) {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9\-]/g, '');
+  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
 }
 
-// Escape text for HTML
-function escapeHtml(text) {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
+// Generate HTML content per event
 function generateHtml(event) {
-  const name = event.properties.eventname || 'Unknown event';
-  const description = event.properties.EventLongName || '';
-  const lat = event.geometry.coordinates[1] || 0;
-  const lng = event.geometry.coordinates[0] || 0;
-  const nameEncoded = encodeURIComponent(name);
+  const name = event.properties.eventname;
+  const longName = event.properties.EventLongName || '';
+  const shortName = event.properties.EventShortName || '';
+  const location = event.properties.EventLocation || '';
+  const coords = event.geometry.coordinates || [];
+  const latitude = coords[1] || 0;
+  const longitude = coords[0] || 0;
 
   return `<!DOCTYPE html>
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>accommodation near ${escapeHtml(name)}</title>
+  <title>accommodation near {{ EVENT_NAME }}</title>
 
   <!-- Inter font for header -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet" />
@@ -291,18 +284,18 @@ function generateHtml(event) {
   </header>
 
   <main>
-    <h1>accommodation near ${escapeHtml(name)}</h1>
+    <h1>accommodation near {{ EVENT_NAME }}</h1>
 
     <a
-      href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}"
+      href="https://www.google.com/maps/search/?api=1&query={{ LAT }},{{ LNG }}"
       target="_blank"
       rel="noopener noreferrer"
       class="directions-link"
-      aria-label="Get directions to ${escapeHtml(name)}"
+      aria-label="Get directions to {{ EVENT_NAME }}"
     >click for directions</a>
 
     <div class="event-description">
-      ${escapeHtml(description)}
+      {{ EVENT_DESCRIPTION }}
     </div>
 
     <div class="grid-container">
@@ -319,7 +312,7 @@ function generateHtml(event) {
       <section aria-label="Nearby hotel prices">
         <h2>🛏️ nearby hotel prices</h2>
         <iframe
-          src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${lat}&lng=${lng}&mapType=classic&display=list&venue=${nameEncoded}"
+          src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat={{ LAT }}&lng={{ LNG }}&mapType=classic&display=list&venue={{ EVENT_NAME_ENCODED }}"
           loading="lazy"
           title="Nearby hotels list"
           tabindex="0"
@@ -342,7 +335,7 @@ function generateHtml(event) {
   </div>
 
   <footer>
-    &copy; 2025 parkrun tourist | generated for <strong>${escapeHtml(name)}</strong>
+    &copy; 2025 parkrun tourist | generated for <strong>{{ EVENT_NAME }}</strong>
   </footer>
 
 </body>
@@ -351,22 +344,27 @@ function generateHtml(event) {
 
 async function main() {
   try {
+    console.log('Fetching events JSON...');
     const data = await fetchJson(EVENTS_URL);
-    const events = data.features.slice(0, MAX_EVENTS);
+
+    if (!data.events || !data.events.features) {
+      throw new Error('Invalid events data structure');
+    }
+
+    const events = data.events.features.slice(0, MAX_EVENTS);
 
     for (const event of events) {
-      const slug = slugify(event.properties.eventname || 'unknown-event');
+      const slug = slugify(event.properties.eventname);
       const filename = path.join(OUTPUT_DIR, `${slug}.html`);
       const htmlContent = generateHtml(event);
 
-      // Write file (overwrite if exists)
       fs.writeFileSync(filename, htmlContent, 'utf-8');
-      console.log(`Generated and overwrote: ${filename}`);
+      console.log(`Generated: ${filename}`);
     }
 
-    console.log('All events processed.');
-  } catch (error) {
-    console.error('Error:', error);
+    console.log(`Successfully generated ${events.length} event HTML files.`);
+  } catch (err) {
+    console.error('Error:', err);
   }
 }
 
