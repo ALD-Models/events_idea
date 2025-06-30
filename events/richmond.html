@@ -71,16 +71,6 @@
       letter-spacing: 0.02em;
       margin-bottom: 0.5rem;
     }
-    h2 {
-      color: var(--primary-dark);
-      font-weight: 700;
-      font-size: 1.25rem;
-      margin-bottom: 1rem;
-      text-transform: none;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
 
     a.directions-link {
       display: inline-block;
@@ -121,16 +111,6 @@
     @media (min-width: 768px) {
       .grid-container {
         grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 767px) {
-      .grid-container {
-        display: flex;
-        flex-direction: column;
-      }
-      section.find-accommodation {
-        order: -1;
       }
     }
 
@@ -218,14 +198,13 @@
       margin-top: auto;
       padding: 1.5rem 1rem 3rem;
     }
-
   </style>
 </head>
 <body>
 
   <header class="top-header" role="banner">
     <a href="https://www.parkrunnertourist.co.uk" target="_blank" rel="noopener noreferrer" aria-label="Visit parkrun tourist homepage">
-      parkrun tourist
+      parkrunner tourist app
     </a>
   </header>
 
@@ -260,7 +239,7 @@
       <section aria-label="Nearby hotel prices">
         <h2>🛏️ nearby hotel prices</h2>
         <iframe
-          src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=51.451962&lng=-0.292886&mapType=classic&display=list&venue=richmond"
+          src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=51.451962&lng=-0.292886&checkin=2025-06-30&maincolor=7dd856&venue=richmond&viewmode=listview&listviewexpand=true"
           loading="lazy"
           title="Nearby hotels list"
           tabindex="0"
@@ -283,7 +262,7 @@
   </div>
 
   <footer>
-    &copy; 2025 parkrun tourist | generated for <strong>richmond</strong>
+    &copy; 2025 parkrunner tourist app | generated for <strong>richmond</strong>
   </footer>
 
 </body>
