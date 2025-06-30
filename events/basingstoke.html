@@ -1,144 +1,296 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>accommodation near basingstoke</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display&display=swap');
-  :root {
-    --primary-color: #4CAF50;
-    --primary-dark: #2E7D32;
-    --primary-light: #E8F5E9;
-  }
-  body {
-    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-      Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    margin: 0; padding: 0; background: var(--primary-light);
-    color: var(--primary-dark);
-  }
-  header {
-    background-color: var(--primary-dark);
-    color: white;
-    padding: 1rem;
-    font-weight: 700;
-    font-size: 1.5rem;
-    cursor: pointer;
-  }
-  header a {
-    color: white;
-    text-decoration: none;
-  }
-  main {
-    display: flex;
-    flex-wrap: wrap;
-    padding: 1rem;
-    gap: 1rem;
-  }
-  .hotels {
-    flex: 1 1 400px;
-    background: white;
-    padding: 1rem;
-    border-radius: 8px;
-  }
-  .hotels h2 {
-    margin-top: 0;
-  }
-  .map-section {
-    flex: 1 1 400px;
-    background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-  }
-  .map-section h2 {
-    margin-top: 0;
-  }
-  iframe {
-    flex: 1;
-    border: none;
-    border-radius: 8px;
-  }
-  .directions {
-    margin-top: 0.5rem;
-  }
-  footer {
-    background-color: var(--primary-dark);
-    color: white;
-    padding: 1rem;
-    text-align: center;
-    font-size: 1rem;
-  }
-  .download-links {
-    margin-top: 0.5rem;
-  }
-  .download-links a {
-    margin: 0 1rem;
-    display: inline-block;
-  }
-  .download-links img {
-    height: 40px;
-    vertical-align: middle;
-  }
-  @media(max-width: 768px) {
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>accommodation near {{ EVENT_NAME }}</title>
+
+  <!-- Inter font for header -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --primary-color: #4CAF50;
+      --primary-dark: #2E7D32;
+      --primary-light: #E8F5E9;
+      --text-color: #2b2b2b;
+      --text-light: #4a4a4a;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      --font-sf-pro: "SF Pro Text", "SF Pro Display", "SF Pro Icons", "Helvetica Neue", sans-serif;
+    }
+
+    /* Body & general fonts */
+    body {
+      font-family: var(--font-sf-pro), var(--font-sans);
+      background: linear-gradient(135deg, var(--primary-light), #fefefe);
+      color: var(--text-color);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Header bar */
+    header.top-header {
+      background-color: var(--primary-dark);
+      padding: 1.25rem 2rem;
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 1.875rem;
+      color: white;
+      user-select: none;
+      cursor: pointer;
+      text-transform: lowercase;
+      letter-spacing: 0.06em;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 4px 15px rgb(46 125 50 / 0.6);
+    }
+    header.top-header:hover {
+      background-color: #256029;
+    }
+    header.top-header a {
+      color: white;
+      text-decoration: none;
+    }
+
     main {
+      max-width: 900px;
+      margin: 2rem auto 3rem;
+      padding: 0 1rem;
+      flex-grow: 1;
+    }
+
+    h1 {
+      color: var(--primary-dark);
+      text-transform: lowercase;
+      font-weight: 800;
+      font-size: 2.25rem;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.5rem;
+    }
+    h2 {
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      text-transform: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Direction link */
+    a.directions-link {
+      display: inline-block;
+      margin-bottom: 2rem;
+      font-size: 1.125rem;
+      color: var(--primary-dark);
+      border: 2px solid var(--primary-dark);
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      text-decoration: none;
+      user-select: none;
+    }
+    a.directions-link:hover,
+    a.directions-link:focus {
+      background-color: var(--primary-dark);
+      color: white;
+      outline: none;
+      text-decoration: none;
+      box-shadow: 0 0 10px var(--primary-dark);
+    }
+
+    /* Event description */
+    .event-description {
+      font-size: 1.125rem;
+      color: var(--text-light);
+      line-height: 1.6;
+      max-width: 850px;
+      margin-bottom: 3rem;
+      font-weight: 400;
+    }
+
+    /* Grid layout for iframes */
+    .grid-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    @media (min-width: 768px) {
+      .grid-container {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* On small screens, reverse order: find accommodation first */
+    @media (max-width: 767px) {
+      .grid-container {
+        display: flex;
+        flex-direction: column;
+      }
+      section.find-accommodation {
+        order: -1;
+      }
+    }
+
+    section {
+      background: white;
+      padding: 1.75rem 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 6px 16px rgb(0 0 0 / 0.08);
+      display: flex;
       flex-direction: column;
     }
-    .map-section, .hotels {
-      flex: 1 1 100%;
+
+    iframe {
+      border: none;
+      border-radius: 1rem;
+      width: 100%;
+      height: 480px;
+      box-shadow: 0 6px 20px rgb(0 0 0 / 0.1);
+      transition: box-shadow 0.3s ease;
+      flex-grow: 1;
     }
-    .hotels {
-      order: 2;
+    iframe:hover,
+    iframe:focus {
+      box-shadow: 0 12px 28px rgb(0 0 0 / 0.15);
+      outline: none;
     }
-    .map-section {
-      order: 1;
+
+    /* Download footer */
+    .download-footer {
+      background: var(--primary-color);
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      align-items: center;
+      flex-wrap: wrap;
+      border-radius: 0.75rem 0.75rem 0 0;
+      box-shadow: 0 0 30px rgba(76, 175, 80, 0.45);
+      user-select: none;
     }
-  }
-</style>
+    .download-footer span {
+      color: white;
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-right: 0.8rem;
+      white-space: nowrap;
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.5rem 1.25rem;
+      border-radius: 0.5rem;
+      background: white;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.12);
+      transition: box-shadow 0.3s ease, transform 0.15s ease;
+      text-decoration: none;
+      user-select: none;
+      min-height: 48px;
+    }
+    .download-btn:hover,
+    .download-btn:focus {
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      transform: translateY(-2px);
+      outline: none;
+    }
+    .download-btn img {
+      height: 28px;
+      margin-right: 0.75rem;
+      user-select: none;
+      pointer-events: none;
+      object-fit: contain;
+      width: auto;
+    }
+    .download-btn span {
+      font-weight: 600;
+      color: var(--text-color);
+      font-size: 1rem;
+      white-space: nowrap;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-light);
+      margin-top: auto;
+      padding: 1.5rem 1rem 3rem;
+    }
+
+  </style>
 </head>
 <body>
-<header onclick="window.open('https://www.parkrunnertourist.co.uk', '_blank')">
-  parkrunnertourist
-</header>
-<main>
-  <section class="hotels">
-    <h2>Nearby hotel prices</h2>
-    <div id="stay22-hotels">
-      <!-- Stay22 widget placeholder -->
-      <iframe
-        src="https://widgets.stay22.com/widget.html?lat=51.258831&lng=-1.082035&zoom=13&partnerId=parkrun"
-        style="width: 100%; height: 400px;"
-        title="Nearby Hotels"
-        allowfullscreen>
-      </iframe>
-    </div>
-  </section>
-  <section class="map-section">
-    <h2>Find accommodation</h2>
-    <iframe
-      src="https://www.parkrunnertourist.co.uk/main"
-      style="width: 100%; height: 400px;"
-      title="Parkrunner Tourist Map"
-      allowfullscreen>
-    </iframe>
-    <div class="directions">
-      <a href="https://www.google.com/maps/dir/?api=1&destination=Basingstoke%20War%20Memorial%20Park" target="_blank" rel="noopener noreferrer">
-        Click for directions
-      </a>
-    </div>
-  </section>
-</main>
-<footer>
-  Download the app:
-  <div class="download-links">
-    <a href="https://apps.apple.com/gb/app/parkrunner-tourist/id6743163993" target="_blank" rel="noopener noreferrer" aria-label="Download on the Apple App Store">
-      <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Apple App Store" />
+
+  <header class="top-header" role="banner">
+    <a href="https://www.parkrunnertourist.co.uk" target="_blank" rel="noopener noreferrer" aria-label="Visit parkrun tourist homepage">
+      parkrun tourist
     </a>
-    <a href="https://play.google.com/store/apps/details?id=co.uk.parkrunnertourist.app" target="_blank" rel="noopener noreferrer" aria-label="Get it on Google Play">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play Store" />
+  </header>
+
+  <main>
+    <h1>accommodation near {{ EVENT_NAME }}</h1>
+
+    <a
+      href="https://www.google.com/maps/search/?api=1&query={{ LAT }},{{ LNG }}"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="directions-link"
+      aria-label="Get directions to {{ EVENT_NAME }}"
+    >click for directions</a>
+
+    <div class="event-description">
+      {{ EVENT_DESCRIPTION }}
+    </div>
+
+    <div class="grid-container">
+      <section class="find-accommodation" aria-label="Find accommodation">
+        <h2>📍 find accommodation</h2>
+        <iframe
+          src="https://www.parkrunnertourist.co.uk/main"
+          loading="lazy"
+          title="Parkrun tourist map and info"
+          tabindex="0"
+        ></iframe>
+      </section>
+
+      <section aria-label="Nearby hotel prices">
+        <h2>🛏️ nearby hotel prices</h2>
+        <iframe
+          src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat={{ LAT }}&lng={{ LNG }}&mapType=classic&display=list&venue={{ EVENT_NAME_ENCODED }}"
+          loading="lazy"
+          title="Nearby hotels list"
+          tabindex="0"
+        ></iframe>
+      </section>
+    </div>
+  </main>
+
+  <div class="download-footer" role="contentinfo" aria-label="Download the parkrun tourist app">
+    <span>Download the app:</span>
+
+    <a href="https://apps.apple.com/gb/app/parkrunner-tourist/id6743163993" target="_blank" rel="noopener noreferrer" class="download-btn" aria-label="Download on the App Store">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple logo" />
+      <span>App Store</span>
+    </a>
+
+    <a href="https://play.google.com/store/apps/details?id=uk.co.parkrunnertourist" target="_blank" rel="noopener noreferrer" class="download-btn" aria-label="Download on Google Play">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play logo" style="height:28px; width:auto; margin-right: 0;" />
     </a>
   </div>
-</footer>
+
+  <footer>
+    &copy; 2025 parkrun tourist | generated for <strong>{{ EVENT_NAME }}</strong>
+  </footer>
+
 </body>
 </html>
