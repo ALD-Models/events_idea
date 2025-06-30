@@ -1,6 +1,7 @@
 const fs = require('fs');
 const https = require('https');
 const path = require('path');
+const { execSync } = require('child_process'); // for git commands
 
 const EVENTS_URL = 'https://raw.githubusercontent.com/ALD-Models/Testing/refs/heads/main/events1.json';
 const OUTPUT_DIR = './events';
@@ -72,98 +73,36 @@ function generateHtml(event) {
   <link rel="canonical" href="${BASE_URL}/${slugify(name)}.html" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background-color: #2e7d32;
-      color: white;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 1.5rem;
-    }
-    main {
-      padding: 2rem;
-    }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-    }
-    .iframe-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    .iframe-container iframe {
-      flex: 1 1 48%;
-      min-height: 500px;
-      border: none;
-      border-radius: 1rem;
-    }
-    @media (max-width: 768px) {
-      .iframe-container iframe {
-        flex: 1 1 100%;
-      }
-    }
-    .download-section {
-      background-color: #4caf50;
-      padding: 2rem;
-      text-align: center;
-    }
-    .download-section h2 {
-      font-size: 1.5rem;
-      color: white;
-      margin-bottom: 1rem;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-    .store-logos {
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      flex-wrap: wrap;
-    }
-    .store-logos img {
-      height: 70px;
-      transition: transform 0.3s;
-    }
-    .store-logos img:hover {
-      transform: scale(1.1);
-    }
-    footer {
-      text-align: center;
-      padding: 1rem;
-      background-color: #eee;
-      font-size: 0.9rem;
-    }
-    .toggle-section {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    header { background-color: #2e7d32; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; font-size: 1.5rem; }
+    main { padding: 2rem; }
+    h1 { font-size: 2rem; margin-bottom: 1rem; }
+    .iframe-row { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; }
+    .iframe-row iframe { flex: 1 1 48%; height: 500px; border: none; border-radius: 1rem; }
+    @media (max-width: 768px) { .iframe-row iframe { flex: 1 1 100%; } }
+    .download-section { background-color: #4caf50; padding: 2rem; text-align: center; }
+    .download-section h2 { font-size: 1.5rem; color: white; margin-bottom: 1rem; font-weight: bold; text-transform: uppercase; }
+    .store-logos { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; }
+    .store-logos img { height: 70px; transition: transform 0.3s; }
+    .store-logos img:hover { transform: scale(1.1); }
+    footer { text-align: center; padding: 1rem; background-color: #eee; font-size: 0.9rem; }
+    .toggle-buttons { text-align: center; margin-bottom: 1rem; }
     .toggle-buttons button {
-      background-color: #2e7d32;
-      color: white;
+      background-color: #ccc;
+      color: #000;
       border: none;
       padding: 0.5rem 1rem;
+      margin: 0 0.5rem;
       border-radius: 0.5rem;
       cursor: pointer;
-      margin: 0 0.5rem;
     }
-    .stay22-title {
-      font-size: 1.25rem;
+    .toggle-buttons .active {
+      background-color: #2e7d32;
+      color: white;
       font-weight: bold;
-      margin-top: 2rem;
-      text-align: center;
+      transform: scale(1.05);
     }
-    .current-view {
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-      color: #555;
-    }
+    .stay22-title { text-align: center; font-size: 1.25rem; font-weight: bold; margin-top: 2rem; }
   </style>
 </head>
 <body>
@@ -177,46 +116,41 @@ function generateHtml(event) {
     <h1>Accommodation near ${name} parkrun</h1>
     <p>${description}</p>
 
-    <div class="iframe-container">
-      <iframe src="https://www.parkrunnertourist.co.uk/main" title="Cafes and campsites map"></iframe>
-    </div>
-
     <div class="stay22-title">Hotel Prices near ${name} parkrun</div>
-
-    <div class="toggle-section">
-      <div class="toggle-buttons">
-        <button onclick="showIframe('list')">List View</button>
-        <button onclick="showIframe('map')">Map View</button>
-      </div>
-      <div id="currentView" class="current-view">Currently showing: List View</div>
+    <div class="toggle-buttons">
+      <button id="listBtn" class="active" onclick="showIframe('list')">List View</button>
+      <button id="mapBtn" onclick="showIframe('map')">Map View</button>
     </div>
 
-    <div class="iframe-container">
-      <iframe id="stay22Frame" src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedVenue}&viewmode=listview&listviewexpand=true" title="Stay22 accommodation"></iframe>
+    <div class="iframe-row">
+      <iframe src="https://www.parkrunnertourist.co.uk/main" title="Map iframe"></iframe>
+      <iframe id="stay22Frame" src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedVenue}&viewmode=listview&listviewexpand=true" title="Stay22 iframe"></iframe>
     </div>
   </main>
 
   <div class="download-section">
-    <h2>Download the app</h2>
+    <h2>Download the App</h2>
     <div class="store-logos">
-      <a href="https://apps.apple.com/gb/app/parkrunner-tourist/id6743163993" target="_blank" rel="noopener noreferrer">
-        <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store">
-      </a>
-      <a href="https://play.google.com/store/apps/details?id=appinventor.ai_jlofty8.parkrunner_tourist" target="_blank" rel="noopener noreferrer">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play">
-      </a>
+      <a href="https://apps.apple.com/gb/app/parkrunner-tourist/id6743163993" target="_blank"><img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" /></a>
+      <a href="https://play.google.com/store/apps/details?id=appinventor.ai_jlofty8.parkrunner_tourist" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" /></a>
     </div>
   </div>
 
-  <footer>
-    &copy; ${new Date().getFullYear()} parkrunner tourist
-  </footer>
+  <footer>&copy; ${new Date().getFullYear()} parkrunner tourist</footer>
 
   <script>
     function showIframe(mode) {
-      const frame = document.getElementById('stay22Frame');
-      frame.src = \`https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedVenue}&viewmode=\${mode}view&listviewexpand=true\`;
-      document.getElementById('currentView').innerText = 'Currently showing: ' + (mode === 'list' ? 'List View' : 'Map View');
+      const stay22 = document.getElementById('stay22Frame');
+      const listBtn = document.getElementById('listBtn');
+      const mapBtn = document.getElementById('mapBtn');
+      stay22.src = \`https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedVenue}&viewmode=\${mode}view&listviewexpand=true\`;
+      if (mode === 'list') {
+        listBtn.classList.add('active');
+        mapBtn.classList.remove('active');
+      } else {
+        mapBtn.classList.add('active');
+        listBtn.classList.remove('active');
+      }
     }
   </script>
 
@@ -246,16 +180,11 @@ async function main() {
     console.log('Fetching events JSON...');
     const data = await fetchJson(EVENTS_URL);
 
-    let events;
-    if (Array.isArray(data)) {
-      events = data;
-    } else if (Array.isArray(data.features)) {
-      events = data.features;
-    } else if (data.events && Array.isArray(data.events.features)) {
-      events = data.events.features;
-    } else {
-      throw new Error('Unexpected JSON structure');
-    }
+    let events = [];
+    if (Array.isArray(data)) events = data;
+    else if (Array.isArray(data.features)) events = data.features;
+    else if (data.events?.features) events = data.events.features;
+    else throw new Error('Unexpected JSON structure');
 
     const selectedEvents = events.slice(0, MAX_EVENTS);
     const slugs = [];
@@ -263,17 +192,20 @@ async function main() {
     for (const event of selectedEvents) {
       const slug = slugify(event.properties.eventname);
       slugs.push(slug);
-      const filename = path.join(OUTPUT_DIR, `${slug}.html`);
       const htmlContent = generateHtml(event);
-      fs.writeFileSync(filename, htmlContent, 'utf-8');
-      console.log(`Generated: ${filename}`);
+      fs.writeFileSync(path.join(OUTPUT_DIR, `${slug}.html`), htmlContent, 'utf-8');
+      console.log(`Generated: ${slug}.html`);
     }
 
     const sitemapContent = generateSitemap(slugs);
-    fs.writeFileSync(path.join(OUTPUT_DIR, 'sitemap.xml'), sitemapContent, 'utf-8');
-    console.log('Generated sitemap.xml in events folder');
+    fs.writeFileSync('./sitemap.xml', sitemapContent, 'utf-8'); // Save to root
+    console.log('sitemap.xml saved to project root');
 
-    console.log(`Successfully generated ${selectedEvents.length} event HTML files.`);
+    // Commit and push sitemap.xml to GitHub
+    execSync('git add sitemap.xml', { stdio: 'inherit' });
+    execSync('git commit -m "Update sitemap.xml"', { stdio: 'inherit' });
+    execSync('git push', { stdio: 'inherit' });
+
   } catch (err) {
     console.error('Error:', err);
   }
