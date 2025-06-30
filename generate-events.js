@@ -34,17 +34,21 @@ function slugify(name) {
   return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
 }
 
+// Get current date in YYYY-MM-DD for checkin param
+function getTodayDateISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 // Generate HTML content per event with placeholders
 function generateHtml(event) {
   const name = event.properties.eventname || 'Unknown event';
-  const longName = event.properties.EventLongName || '';
-  const shortName = event.properties.EventShortName || '';
   const location = event.properties.EventLocation || '';
   const description = event.properties.EventDescription || 'No description available.';
   const coords = event.geometry.coordinates || [];
   const latitude = coords[1] || 0;
   const longitude = coords[0] || 0;
   const encodedName = encodeURIComponent(name);
+  const checkinDate = getTodayDateISO();
 
   return `<!DOCTYPE html>
 <html lang="en" >
@@ -119,16 +123,6 @@ function generateHtml(event) {
       letter-spacing: 0.02em;
       margin-bottom: 0.5rem;
     }
-    h2 {
-      color: var(--primary-dark);
-      font-weight: 700;
-      font-size: 1.25rem;
-      margin-bottom: 1rem;
-      text-transform: none;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
 
     a.directions-link {
       display: inline-block;
@@ -169,16 +163,6 @@ function generateHtml(event) {
     @media (min-width: 768px) {
       .grid-container {
         grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 767px) {
-      .grid-container {
-        display: flex;
-        flex-direction: column;
-      }
-      section.find-accommodation {
-        order: -1;
       }
     }
 
@@ -266,14 +250,13 @@ function generateHtml(event) {
       margin-top: auto;
       padding: 1.5rem 1rem 3rem;
     }
-
   </style>
 </head>
 <body>
 
   <header class="top-header" role="banner">
     <a href="https://www.parkrunnertourist.co.uk" target="_blank" rel="noopener noreferrer" aria-label="Visit parkrun tourist homepage">
-      parkrun tourist
+      parkrunner tourist app
     </a>
   </header>
 
@@ -308,7 +291,7 @@ function generateHtml(event) {
       <section aria-label="Nearby hotel prices">
         <h2>🛏️ nearby hotel prices</h2>
         <iframe
-          src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&mapType=classic&display=list&venue=${encodedName}"
+          src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedName}&viewmode=listview&listviewexpand=true"
           loading="lazy"
           title="Nearby hotels list"
           tabindex="0"
@@ -331,7 +314,7 @@ function generateHtml(event) {
   </div>
 
   <footer>
-    &copy; 2025 parkrun tourist | generated for <strong>${name}</strong>
+    &copy; ${new Date().getFullYear()} parkrunner tourist app | generated for <strong>${name}</strong>
   </footer>
 
 </body>
