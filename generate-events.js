@@ -54,7 +54,7 @@ function generateHtml(event) {
   const coords = event.geometry.coordinates || [];
   const latitude = coords[1] || 0;
   const longitude = coords[0] || 0;
-  const encodedName = encodeURIComponent(name);
+  const encodedVenue = encodeURIComponent(`${name} parkrun`);
   const checkinDate = getTodayDateISO();
   const pageTitle = `Accommodation near ${name} parkrun`;
 
@@ -118,6 +118,8 @@ function generateHtml(event) {
       font-size: 1.5rem;
       color: white;
       margin-bottom: 1rem;
+      font-weight: bold;
+      text-transform: uppercase;
     }
     .store-logos {
       display: flex;
@@ -138,6 +140,20 @@ function generateHtml(event) {
       background-color: #eee;
       font-size: 0.9rem;
     }
+    .toggle-buttons {
+      margin: 1rem 0;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .toggle-buttons button {
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -151,9 +167,14 @@ function generateHtml(event) {
     <h1>Accommodation near ${name} parkrun</h1>
     <p>${description}</p>
 
+    <div class="toggle-buttons">
+      <button onclick="showIframe('list')">List View</button>
+      <button onclick="showIframe('map')">Map View</button>
+    </div>
+
     <div class="iframe-container">
-      <iframe src="https://www.parkrunnertourist.co.uk/main" title="Map view of cafes/campsites"></iframe>
-      <iframe src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedName}&viewmode=listview&listviewexpand=true" title="Stay22 accommodation list"></iframe>
+      <iframe src="https://www.parkrunnertourist.co.uk/main" title="Cafes and campsites map"></iframe>
+      <iframe id="stay22Frame" src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedVenue}&viewmode=listview&listviewexpand=true" title="Stay22 accommodation"></iframe>
     </div>
   </main>
 
@@ -161,10 +182,10 @@ function generateHtml(event) {
     <h2>Download the app</h2>
     <div class="store-logos">
       <a href="https://apps.apple.com/gb/app/parkrunner-tourist/id6743163993" target="_blank" rel="noopener noreferrer">
-        <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store">
+        <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store">
       </a>
       <a href="https://play.google.com/store/apps/details?id=appinventor.ai_jlofty8.parkrunner_tourist" target="_blank" rel="noopener noreferrer">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play">
       </a>
     </div>
   </div>
@@ -172,6 +193,13 @@ function generateHtml(event) {
   <footer>
     &copy; ${new Date().getFullYear()} parkrunner tourist
   </footer>
+
+  <script>
+    function showIframe(mode) {
+      const frame = document.getElementById('stay22Frame');
+      frame.src = \`https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedVenue}&viewmode=\${mode}view&listviewexpand=true\`;
+    }
+  </script>
 
 </body>
 </html>`;
@@ -223,8 +251,8 @@ async function main() {
     }
 
     const sitemapContent = generateSitemap(slugs);
-    fs.writeFileSync(path.join(OUTPUT_DIR, 'sitemap.xml'), sitemapContent, 'utf-8');
-    console.log('Generated sitemap.xml');
+    fs.writeFileSync(path.join('./sitemap.xml'), sitemapContent, 'utf-8'); // 🔥 Save in root
+    console.log('Generated sitemap.xml in root directory');
 
     console.log(`Successfully generated ${selectedEvents.length} event HTML files.`);
   } catch (err) {
