@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>accommodation near {{ EVENT_NAME }}</title>
+  <title>accommodation near brighton</title>
 
   <!-- Inter font for header -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet" />
@@ -21,7 +21,6 @@
       --font-sf-pro: "SF Pro Text", "SF Pro Display", "SF Pro Icons", "Helvetica Neue", sans-serif;
     }
 
-    /* Body & general fonts */
     body {
       font-family: var(--font-sf-pro), var(--font-sans);
       background: linear-gradient(135deg, var(--primary-light), #fefefe);
@@ -34,7 +33,6 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Header bar */
     header.top-header {
       background-color: var(--primary-dark);
       padding: 1.25rem 2rem;
@@ -84,7 +82,6 @@
       gap: 0.5rem;
     }
 
-    /* Direction link */
     a.directions-link {
       display: inline-block;
       margin-bottom: 2rem;
@@ -107,7 +104,6 @@
       box-shadow: 0 0 10px var(--primary-dark);
     }
 
-    /* Event description */
     .event-description {
       font-size: 1.125rem;
       color: var(--text-light);
@@ -117,7 +113,6 @@
       font-weight: 400;
     }
 
-    /* Grid layout for iframes */
     .grid-container {
       display: grid;
       grid-template-columns: 1fr;
@@ -129,7 +124,6 @@
       }
     }
 
-    /* On small screens, reverse order: find accommodation first */
     @media (max-width: 767px) {
       .grid-container {
         display: flex;
@@ -164,7 +158,6 @@
       outline: none;
     }
 
-    /* Download footer */
     .download-footer {
       background: var(--primary-color);
       padding: 1.5rem 2rem;
@@ -218,7 +211,6 @@
       white-space: nowrap;
     }
 
-    /* Footer */
     footer {
       text-align: center;
       font-size: 0.9rem;
@@ -238,18 +230,20 @@
   </header>
 
   <main>
-    <h1>accommodation near {{ EVENT_NAME }}</h1>
+    <h1>accommodation near brighton</h1>
+
+    <p><strong>Location:</strong> Hove Park, Brighton</p>
 
     <a
-      href="https://www.google.com/maps/search/?api=1&query={{ LAT }},{{ LNG }}"
+      href="https://www.google.com/maps/search/?api=1&query=50.84214,-0.172498"
       target="_blank"
       rel="noopener noreferrer"
       class="directions-link"
-      aria-label="Get directions to {{ EVENT_NAME }}"
+      aria-label="Get directions to brighton"
     >click for directions</a>
 
     <div class="event-description">
-      {{ EVENT_DESCRIPTION }}
+      No description available.
     </div>
 
     <div class="grid-container">
@@ -266,7 +260,7 @@
       <section aria-label="Nearby hotel prices">
         <h2>🛏️ nearby hotel prices</h2>
         <iframe
-          src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat={{ LAT }}&lng={{ LNG }}&mapType=classic&display=list&venue={{ EVENT_NAME_ENCODED }}"
+          src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=50.84214&lng=-0.172498&mapType=classic&display=list&venue=brighton"
           loading="lazy"
           title="Nearby hotels list"
           tabindex="0"
@@ -289,7 +283,7 @@
   </div>
 
   <footer>
-    &copy; 2025 parkrun tourist | generated for <strong>{{ EVENT_NAME }}</strong>
+    &copy; 2025 parkrun tourist | generated for <strong>brighton</strong>
   </footer>
 
 </body>
