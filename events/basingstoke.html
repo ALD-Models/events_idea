@@ -9,6 +9,33 @@
   <link rel="canonical" href="https://www.parkrunnertourist.co.uk/events/basingstoke.html" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+    }
+    header {
+      background-color: #2e7d32;
+      color: white;
+      padding: 1rem 2rem;
+      font-family: 'Georgia', serif;
+      font-weight: bold;
+      font-size: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header a {
+      color: white;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    main {
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
     .iframe-container {
       display: flex;
       flex-direction: row;
@@ -22,46 +49,73 @@
       border: none;
       overflow: hidden;
     }
-    .download-footer img {
-      height: 70px;
-      transition: transform 0.3s ease;
-    }
-    .download-footer img:hover {
-      transform: scale(1.1);
-    }
+    /* Toggle buttons */
     .toggle-btn {
       padding: 0.5rem 1rem;
       border-radius: 0.5rem;
       margin-right: 0.5rem;
       cursor: pointer;
       font-weight: bold;
-      border: 2px solid transparent;
+      border: none;
       transition: all 0.3s ease;
+      background-color: #4caf50;
+      color: white;
+      user-select: none;
+    }
+    .toggle-btn:hover:not(.active) {
+      background-color: #388e3c;
     }
     .toggle-btn.active {
-      background-color: #2e7d32;
-      color: white;
-      border-color: #1b4d22;
+      background-color: #1b4d22;
+      color: #c8e6c9;
       font-size: 1.1rem;
+    }
+
+    /* Download footer */
+    .download-footer {
+      background-color: #4caf50;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      color: white;
+      font-weight: bold;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+    }
+    .download-footer img {
+      height: 60px;
+      width: auto;
+      background: none;
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
+    .download-footer img:hover {
+      transform: scale(1.1);
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
     }
   </style>
 </head>
 <body>
 
-<header class="flex justify-between items-center bg-green-700 text-white p-4 text-xl">
-  <div>parkrunner tourist</div>
-  <div>accommodation near basingstoke parkrun</div>
+<header>
+  <a href="https://www.parkrunnertourist.co.uk" target="_self" title="Go to parkrunner tourist homepage">parkrunner tourist</a>
+  <div><!-- empty - removed accommodation text --></div>
 </header>
 
-<main class="p-6">
-  <h1 class="text-2xl mb-4">Accommodation near basingstoke parkrun</h1>
-  <p class="mb-6">No description available.</p>
+<main>
+  <h1>Accommodation near basingstoke parkrun</h1>
+  <p>No description available.</p>
 
   <h2 class="text-xl font-semibold mb-2">Hotel Prices</h2>
   <div class="mb-4">
     <button class="toggle-btn active" onclick="switchView('listview')" id="btn-listview">List View</button>
     <button class="toggle-btn" onclick="switchView('map')" id="btn-map">Map View</button>
-    <span id="current-view" class="ml-4 text-green-700 font-bold">Currently Showing: List View</span>
   </div>
 
   <div class="iframe-container">
@@ -74,17 +128,19 @@
   </div>
 </main>
 
-<div class="download-footer bg-green-600 flex justify-center gap-4 p-4 mt-8">
-  <div class="text-white font-bold text-lg mr-4 self-center">DOWNLOAD THE APP</div>
-  <a href="https://apps.apple.com/gb/app/parkrunner-tourist/id6743163993" target="_blank" rel="noopener noreferrer">
-    <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" />
-  </a>
-  <a href="https://play.google.com/store/apps/details?id=appinventor.ai_jlofty8.parkrunner_tourist" target="_blank" rel="noopener noreferrer">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" />
-  </a>
+<div class="download-footer">
+  DOWNLOAD THE APP
+  <div class="flex gap-4">
+    <a href="https://apps.apple.com/gb/app/parkrunner-tourist/id6743163993" target="_blank" rel="noopener noreferrer">
+      <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" />
+    </a>
+    <a href="https://play.google.com/store/apps/details?id=appinventor.ai_jlofty8.parkrunner_tourist" target="_blank" rel="noopener noreferrer">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" />
+    </a>
+  </div>
 </div>
 
-<footer class="text-center py-4">
+<footer>
   &copy; 2025 parkrunner tourist
 </footer>
 
@@ -93,7 +149,6 @@
     const iframe = document.getElementById('stay22Frame');
     const baseUrl = "https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=51.258831&lng=-1.082035&checkin=2025-07-04&maincolor=7dd856&venue=basingstoke%20parkrun";
     iframe.src = baseUrl + "&viewmode=" + mode + "&listviewexpand=" + (mode === 'listview');
-    document.getElementById('current-view').textContent = "Currently Showing: " + (mode === 'map' ? "Map View" : "List View");
     document.getElementById('btn-listview').classList.toggle('active', mode === 'listview');
     document.getElementById('btn-map').classList.toggle('active', mode === 'map');
   }
