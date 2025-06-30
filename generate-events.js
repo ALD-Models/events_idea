@@ -36,10 +36,8 @@ function getTodayDateISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function getSeoDescription(text) {
-  if (!text) return 'Find accommodation near this parkrun event.';
-  const stripped = text.replace(/(<([^>]+)>)/gi, '').trim();
-  return stripped.length > 150 ? stripped.slice(0, 147) + '...' : stripped;
+function getSeoDescription(name) {
+  return `Find and book hotels, campsites, and cafes near ${name} parkrun.`;
 }
 
 function getSeoKeywords(name, location) {
@@ -58,10 +56,10 @@ function generateHtml(event) {
   const longitude = coords[0] || 0;
   const encodedName = encodeURIComponent(name);
   const checkinDate = getTodayDateISO();
-
-  const seoDescription = getSeoDescription(description);
-  const seoKeywords = getSeoKeywords(name, location);
   const pageTitle = `Accommodation near ${name} parkrun`;
+
+  const seoDescription = getSeoDescription(name);
+  const seoKeywords = getSeoKeywords(name, location);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -95,27 +93,50 @@ function generateHtml(event) {
       font-size: 2rem;
       margin-bottom: 1rem;
     }
-    iframe {
-      width: 100%;
-      height: 80vh;
+    .iframe-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .iframe-container iframe {
+      flex: 1 1 48%;
+      min-height: 500px;
       border: none;
       border-radius: 1rem;
     }
-    .download-footer {
+    @media (max-width: 768px) {
+      .iframe-container iframe {
+        flex: 1 1 100%;
+      }
+    }
+    .download-section {
+      background-color: #4caf50;
+      padding: 2rem;
+      text-align: center;
+    }
+    .download-section h2 {
+      font-size: 1.5rem;
+      color: white;
+      margin-bottom: 1rem;
+    }
+    .store-logos {
       display: flex;
       justify-content: center;
       gap: 2rem;
-      padding: 2rem;
-      background-color: #4caf50;
+      flex-wrap: wrap;
     }
-    .download-footer img {
-      height: 60px;
-      width: auto;
-      background: none;
+    .store-logos img {
+      height: 70px;
+      transition: transform 0.3s;
+    }
+    .store-logos img:hover {
+      transform: scale(1.1);
     }
     footer {
       text-align: center;
       padding: 1rem;
+      background-color: #eee;
+      font-size: 0.9rem;
     }
   </style>
 </head>
@@ -130,18 +151,22 @@ function generateHtml(event) {
     <h1>Accommodation near ${name} parkrun</h1>
     <p>${description}</p>
 
-    <iframe src="https://www.parkrunnertourist.co.uk/main" title="Map iframe"></iframe>
-    <br>
-    <iframe src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedName}&viewmode=listview&listviewexpand=true" title="Stay22 iframe"></iframe>
+    <div class="iframe-container">
+      <iframe src="https://www.parkrunnertourist.co.uk/main" title="Map view of cafes/campsites"></iframe>
+      <iframe src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedName}&viewmode=listview&listviewexpand=true" title="Stay22 accommodation list"></iframe>
+    </div>
   </main>
 
-  <div class="download-footer">
-    <a href="https://apps.apple.com/gb/app/parkrunner-tourist/id6743163993" target="_blank" rel="noopener noreferrer">
-      <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" />
-    </a>
-    <a href="https://play.google.com/store/apps/details?id=appinventor.ai_jlofty8.parkrunner_tourist" target="_blank" rel="noopener noreferrer">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" />
-    </a>
+  <div class="download-section">
+    <h2>Download the app</h2>
+    <div class="store-logos">
+      <a href="https://apps.apple.com/gb/app/parkrunner-tourist/id6743163993" target="_blank" rel="noopener noreferrer">
+        <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store">
+      </a>
+      <a href="https://play.google.com/store/apps/details?id=appinventor.ai_jlofty8.parkrunner_tourist" target="_blank" rel="noopener noreferrer">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play">
+      </a>
+    </div>
   </div>
 
   <footer>
