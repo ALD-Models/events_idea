@@ -1,0 +1,9 @@
+{
+  "name": "parkrun-events-generator",
+  "version": "1.0.0",
+  "main": "generate-events.js",
+  "scripts": {
+    "generate": "node generate-events.js"
+  },
+  "dependencies": {}
+}
