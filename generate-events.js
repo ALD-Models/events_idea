@@ -5,6 +5,7 @@ const path = require('path');
 const EVENTS_URL = 'https://raw.githubusercontent.com/ALD-Models/Testing/refs/heads/main/events1.json';
 const OUTPUT_DIR = './events';
 const MAX_EVENTS = 10;
+const BASE_URL = 'https://www.parkrunnertourist.co.uk/events'; // Change this to your actual site base URL
 
 // Ensure output directory exists
 if (!fs.existsSync(OUTPUT_DIR)) {
@@ -39,7 +40,22 @@ function getTodayDateISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-// Generate HTML content per event with placeholders
+// Generate SEO meta description snippet (shortened description)
+function getSeoDescription(text) {
+  if (!text) return 'Find accommodation near this parkrun event.';
+  const stripped = text.replace(/(<([^>]+)>)/gi, '').trim();
+  return stripped.length > 150 ? stripped.slice(0, 147) + '...' : stripped;
+}
+
+// Generate keywords for SEO meta tag (basic from name + location)
+function getSeoKeywords(name, location) {
+  const base = ['parkrun', 'accommodation', 'hotel', 'stay', 'tourist', 'travel'];
+  if (name) base.push(...name.toLowerCase().split(' '));
+  if (location) base.push(...location.toLowerCase().split(' '));
+  return Array.from(new Set(base)).join(', ');
+}
+
+// Generate HTML content per event
 function generateHtml(event) {
   const name = event.properties.eventname || 'Unknown event';
   const location = event.properties.EventLocation || '';
@@ -50,16 +66,20 @@ function generateHtml(event) {
   const encodedName = encodeURIComponent(name);
   const checkinDate = getTodayDateISO();
 
+  const seoDescription = getSeoDescription(description);
+  const seoKeywords = getSeoKeywords(name, location);
+  const pageTitle = `Accommodation near ${name} parkrun`;
+
   return `<!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>accommodation near ${name}</title>
-
-  <!-- Inter font for header -->
+  <title>${pageTitle} | parkrunner tourist app</title>
+  <meta name="description" content="${seoDescription}" />
+  <meta name="keywords" content="${seoKeywords}" />
+  <link rel="canonical" href="${BASE_URL}/${slugify(name)}.html" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet" />
-
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
@@ -87,29 +107,34 @@ function generateHtml(event) {
 
     header.top-header {
       background-color: var(--primary-dark);
-      padding: 1.25rem 2rem;
-      text-align: center;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       font-family: 'Inter', sans-serif;
       font-weight: 700;
-      font-size: 1.875rem;
+      font-size: 1.5rem;
       color: white;
       user-select: none;
-      cursor: pointer;
       text-transform: lowercase;
       letter-spacing: 0.06em;
-      transition: background-color 0.3s ease;
       box-shadow: 0 4px 15px rgb(46 125 50 / 0.6);
-    }
-    header.top-header:hover {
-      background-color: #256029;
     }
     header.top-header a {
       color: white;
       text-decoration: none;
+      user-select: none;
+    }
+    header .right-title {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #c8e6c9;
+      user-select: none;
+      white-space: nowrap;
     }
 
     main {
-      max-width: 900px;
+      max-width: 960px;
       margin: 2rem auto 3rem;
       padding: 0 1rem;
       flex-grow: 1;
@@ -119,7 +144,7 @@ function generateHtml(event) {
       color: var(--primary-dark);
       text-transform: lowercase;
       font-weight: 800;
-      font-size: 2.25rem;
+      font-size: 2.5rem;
       letter-spacing: 0.02em;
       margin-bottom: 0.5rem;
     }
@@ -173,16 +198,25 @@ function generateHtml(event) {
       box-shadow: 0 6px 16px rgb(0 0 0 / 0.08);
       display: flex;
       flex-direction: column;
+      height: 520px;
+    }
+
+    section h2 {
+      margin-bottom: 1rem;
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--primary-dark);
+      user-select: none;
     }
 
     iframe {
       border: none;
       border-radius: 1rem;
       width: 100%;
-      height: 480px;
+      flex-grow: 1;
+      min-height: 420px;
       box-shadow: 0 6px 20px rgb(0 0 0 / 0.1);
       transition: box-shadow 0.3s ease;
-      flex-grow: 1;
     }
     iframe:hover,
     iframe:focus {
@@ -213,7 +247,7 @@ function generateHtml(event) {
     .download-btn {
       display: inline-flex;
       align-items: center;
-      padding: 0.5rem 1.25rem;
+      padding: 0.5rem 0.75rem;
       border-radius: 0.5rem;
       background: white;
       box-shadow: 0 5px 12px rgba(0,0,0,0.12);
@@ -221,6 +255,9 @@ function generateHtml(event) {
       text-decoration: none;
       user-select: none;
       min-height: 48px;
+      gap: 0.5rem;
+      font-weight: 600;
+      color: var(--text-color);
     }
     .download-btn:hover,
     .download-btn:focus {
@@ -229,18 +266,10 @@ function generateHtml(event) {
       outline: none;
     }
     .download-btn img {
-      height: 28px;
-      margin-right: 0.75rem;
+      height: 32px;
+      width: auto;
       user-select: none;
       pointer-events: none;
-      object-fit: contain;
-      width: auto;
-    }
-    .download-btn span {
-      font-weight: 600;
-      color: var(--text-color);
-      font-size: 1rem;
-      white-space: nowrap;
     }
 
     footer {
@@ -258,22 +287,21 @@ function generateHtml(event) {
     <a href="https://www.parkrunnertourist.co.uk" target="_blank" rel="noopener noreferrer" aria-label="Visit parkrun tourist homepage">
       parkrunner tourist app
     </a>
+    <div class="right-title">accommodation near ${name} parkrun</div>
   </header>
 
   <main>
-    <h1>accommodation near ${name}</h1>
-
-    <p><strong>Location:</strong> ${location}</p>
+    <h1>accommodation near ${name} parkrun</h1>
 
     <a
       href="https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}"
       target="_blank"
       rel="noopener noreferrer"
       class="directions-link"
-      aria-label="Get directions to ${name}"
+      aria-label="Get directions to ${name} parkrun"
     >click for directions</a>
 
-    <div class="event-description">
+    <div class="event-description" aria-label="Event description">
       ${description}
     </div>
 
@@ -304,21 +332,45 @@ function generateHtml(event) {
     <span>Download the app:</span>
 
     <a href="https://apps.apple.com/gb/app/parkrunner-tourist/id6743163993" target="_blank" rel="noopener noreferrer" class="download-btn" aria-label="Download on the App Store">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple logo" />
-      <span>App Store</span>
+      <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" />
+      App Store
     </a>
 
     <a href="https://play.google.com/store/apps/details?id=uk.co.parkrunnertourist" target="_blank" rel="noopener noreferrer" class="download-btn" aria-label="Download on Google Play">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play logo" style="height:28px; width:auto; margin-right: 0;" />
+      <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" />
+      Google Play
     </a>
   </div>
 
   <footer>
-    &copy; ${new Date().getFullYear()} parkrunner tourist app | generated for <strong>${name}</strong>
+    &copy; ${new Date().getFullYear()} parkrunner tourist app
   </footer>
 
 </body>
 </html>`;
+}
+
+// Generate sitemap.xml
+function generateSitemap(slugs) {
+  const today = new Date().toISOString().slice(0, 10);
+  const urlset = slugs.map(slug => `
+    <url>
+      <loc>${BASE_URL}/${slug}.html</loc>
+      <lastmod>${today}</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.6</priority>
+    </url>
+  `).join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+                      http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
+>
+${urlset}
+</urlset>`;
 }
 
 async function main() {
@@ -326,9 +378,7 @@ async function main() {
     console.log('Fetching events JSON...');
     const data = await fetchJson(EVENTS_URL);
 
-    // Determine where the event list is
     let events;
-
     if (Array.isArray(data)) {
       events = data;
     } else if (Array.isArray(data.features)) {
@@ -339,11 +389,12 @@ async function main() {
       throw new Error('Unexpected JSON structure');
     }
 
-    // Limit events count
     const selectedEvents = events.slice(0, MAX_EVENTS);
+    const slugs = [];
 
     for (const event of selectedEvents) {
       const slug = slugify(event.properties.eventname);
+      slugs.push(slug);
       const filename = path.join(OUTPUT_DIR, `${slug}.html`);
 
       const htmlContent = generateHtml(event);
@@ -351,6 +402,11 @@ async function main() {
       fs.writeFileSync(filename, htmlContent, 'utf-8');
       console.log(`Generated: ${filename}`);
     }
+
+    // Generate sitemap.xml in output directory
+    const sitemapContent = generateSitemap(slugs);
+    fs.writeFileSync(path.join(OUTPUT_DIR, 'sitemap.xml'), sitemapContent, 'utf-8');
+    console.log('Generated sitemap.xml');
 
     console.log(`Successfully generated ${selectedEvents.length} event HTML files.`);
   } catch (err) {
