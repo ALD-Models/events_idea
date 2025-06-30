@@ -7,7 +7,7 @@ const OUTPUT_DIR = './events';
 const MAX_EVENTS = 10;
 
 // Ensure output directory exists
-if (!fs.existsSync(OUTPUT_DIR)){
+if (!fs.existsSync(OUTPUT_DIR)) {
   fs.mkdirSync(OUTPUT_DIR);
 }
 
@@ -29,27 +29,29 @@ function fetchJson(url) {
   });
 }
 
-// Generate slug from eventname
+// Generate slug from event name
 function slugify(name) {
   return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
 }
 
-// Generate HTML content per event
+// Generate HTML content per event with placeholders
 function generateHtml(event) {
-  const name = event.properties.eventname;
+  const name = event.properties.eventname || 'Unknown event';
   const longName = event.properties.EventLongName || '';
   const shortName = event.properties.EventShortName || '';
   const location = event.properties.EventLocation || '';
+  const description = event.properties.EventDescription || 'No description available.';
   const coords = event.geometry.coordinates || [];
   const latitude = coords[1] || 0;
   const longitude = coords[0] || 0;
+  const encodedName = encodeURIComponent(name);
 
   return `<!DOCTYPE html>
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>accommodation near {{ EVENT_NAME }}</title>
+  <title>accommodation near ${name}</title>
 
   <!-- Inter font for header -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet" />
@@ -67,7 +69,6 @@ function generateHtml(event) {
       --font-sf-pro: "SF Pro Text", "SF Pro Display", "SF Pro Icons", "Helvetica Neue", sans-serif;
     }
 
-    /* Body & general fonts */
     body {
       font-family: var(--font-sf-pro), var(--font-sans);
       background: linear-gradient(135deg, var(--primary-light), #fefefe);
@@ -80,7 +81,6 @@ function generateHtml(event) {
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Header bar */
     header.top-header {
       background-color: var(--primary-dark);
       padding: 1.25rem 2rem;
@@ -130,7 +130,6 @@ function generateHtml(event) {
       gap: 0.5rem;
     }
 
-    /* Direction link */
     a.directions-link {
       display: inline-block;
       margin-bottom: 2rem;
@@ -153,7 +152,6 @@ function generateHtml(event) {
       box-shadow: 0 0 10px var(--primary-dark);
     }
 
-    /* Event description */
     .event-description {
       font-size: 1.125rem;
       color: var(--text-light);
@@ -163,7 +161,6 @@ function generateHtml(event) {
       font-weight: 400;
     }
 
-    /* Grid layout for iframes */
     .grid-container {
       display: grid;
       grid-template-columns: 1fr;
@@ -175,7 +172,6 @@ function generateHtml(event) {
       }
     }
 
-    /* On small screens, reverse order: find accommodation first */
     @media (max-width: 767px) {
       .grid-container {
         display: flex;
@@ -210,7 +206,6 @@ function generateHtml(event) {
       outline: none;
     }
 
-    /* Download footer */
     .download-footer {
       background: var(--primary-color);
       padding: 1.5rem 2rem;
@@ -264,7 +259,6 @@ function generateHtml(event) {
       white-space: nowrap;
     }
 
-    /* Footer */
     footer {
       text-align: center;
       font-size: 0.9rem;
@@ -284,18 +278,20 @@ function generateHtml(event) {
   </header>
 
   <main>
-    <h1>accommodation near {{ EVENT_NAME }}</h1>
+    <h1>accommodation near ${name}</h1>
+
+    <p><strong>Location:</strong> ${location}</p>
 
     <a
-      href="https://www.google.com/maps/search/?api=1&query={{ LAT }},{{ LNG }}"
+      href="https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}"
       target="_blank"
       rel="noopener noreferrer"
       class="directions-link"
-      aria-label="Get directions to {{ EVENT_NAME }}"
+      aria-label="Get directions to ${name}"
     >click for directions</a>
 
     <div class="event-description">
-      {{ EVENT_DESCRIPTION }}
+      ${description}
     </div>
 
     <div class="grid-container">
@@ -312,7 +308,7 @@ function generateHtml(event) {
       <section aria-label="Nearby hotel prices">
         <h2>🛏️ nearby hotel prices</h2>
         <iframe
-          src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat={{ LAT }}&lng={{ LNG }}&mapType=classic&display=list&venue={{ EVENT_NAME_ENCODED }}"
+          src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&mapType=classic&display=list&venue=${encodedName}"
           loading="lazy"
           title="Nearby hotels list"
           tabindex="0"
@@ -335,7 +331,7 @@ function generateHtml(event) {
   </div>
 
   <footer>
-    &copy; 2025 parkrun tourist | generated for <strong>{{ EVENT_NAME }}</strong>
+    &copy; 2025 parkrun tourist | generated for <strong>${name}</strong>
   </footer>
 
 </body>
@@ -347,22 +343,33 @@ async function main() {
     console.log('Fetching events JSON...');
     const data = await fetchJson(EVENTS_URL);
 
-    if (!data.events || !data.events.features) {
-      throw new Error('Invalid events data structure');
+    // Determine where the event list is
+    let events;
+
+    if (Array.isArray(data)) {
+      events = data;
+    } else if (Array.isArray(data.features)) {
+      events = data.features;
+    } else if (data.events && Array.isArray(data.events.features)) {
+      events = data.events.features;
+    } else {
+      throw new Error('Unexpected JSON structure');
     }
 
-    const events = data.events.features.slice(0, MAX_EVENTS);
+    // Limit events count
+    const selectedEvents = events.slice(0, MAX_EVENTS);
 
-    for (const event of events) {
+    for (const event of selectedEvents) {
       const slug = slugify(event.properties.eventname);
       const filename = path.join(OUTPUT_DIR, `${slug}.html`);
+
       const htmlContent = generateHtml(event);
 
       fs.writeFileSync(filename, htmlContent, 'utf-8');
       console.log(`Generated: ${filename}`);
     }
 
-    console.log(`Successfully generated ${events.length} event HTML files.`);
+    console.log(`Successfully generated ${selectedEvents.length} event HTML files.`);
   } catch (err) {
     console.error('Error:', err);
   }
