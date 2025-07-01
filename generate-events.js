@@ -59,16 +59,20 @@ async function generateHtml(event) {
   const checkinDate = getNextFridayDateISO();
   const pageTitle = `Accommodation near ${name} parkrun`;
 
-  // Try to get Wikipedia description
-  let description = event.properties.EventDescription || 'No description available.';
+let description = event.properties.EventDescription || 'No description available.';
+
+try {
   const wikiDesc = await fetchWikipediaDescription(name);
   if (wikiDesc && wikiDesc.length > 50) {
-    // Embed the Wikipedia description with a mention & link
     description = `<p>${wikiDesc}</p><p><em>Source: <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(name.replace(/\s+/g, '_'))}" target="_blank" rel="noopener noreferrer">Wikipedia</a></em></p>`;
   } else {
-    // Just escape HTML for safety
     description = `<p>${description.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
   }
+} catch (e) {
+  console.warn(`Failed to fetch Wikipedia description for ${name}: ${e.message}`);
+  description = `<p>${description.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
+}
+
 
   // Stay22 iframe base URL with scroll locking via scrolling="no"
   const stay22BaseUrl = `https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedName}`;
