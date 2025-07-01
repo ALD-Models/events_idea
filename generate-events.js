@@ -196,7 +196,7 @@ async function generateHtml(event) {
       padding: 1.5rem;
       border-radius: 1rem;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
       border: 1px solid rgba(76, 175, 80, 0.2);
     }
     
@@ -228,9 +228,9 @@ async function generateHtml(event) {
       box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
     }
     
-    .iframe-grid {
+    .content-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 300px 1fr;
       gap: 2rem;
       margin-bottom: 2rem;
     }
@@ -270,19 +270,37 @@ async function generateHtml(event) {
     
     iframe {
       width: 100%;
-      height: 500px;
       border-radius: 0.75rem;
       border: none;
       overflow: hidden;
     }
     
-    .weather-section {
-      grid-column: 1 / -1;
-      margin-bottom: 2rem;
-    }
-    
     .weather-iframe {
       height: 300px;
+      width: 100%;
+    }
+    
+    .accommodation-iframe {
+      height: 600px;
+      overflow-x: hidden;
+    }
+    
+    .map-iframe {
+      height: 600px;
+    }
+    
+    .hotels-section {
+      grid-column: 1;
+    }
+    
+    .weather-section {
+      grid-column: 2;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .map-section {
+      grid-column: 3;
     }
     
     /* Download footer */
@@ -343,11 +361,29 @@ async function generateHtml(event) {
     }
     
     /* Responsive Design */
-    @media (max-width: 768px) {
-      .iframe-grid {
+    @media (max-width: 1024px) {
+      .content-grid {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
       }
       
+      .hotels-section,
+      .weather-section,
+      .map-section {
+        grid-column: 1;
+      }
+      
+      .weather-iframe {
+        height: 250px;
+      }
+      
+      .accommodation-iframe,
+      .map-iframe {
+        height: 450px;
+      }
+    }
+    
+    @media (max-width: 768px) {
       main {
         padding: 2rem 1rem;
       }
@@ -364,6 +400,8 @@ async function generateHtml(event) {
       .toggle-btn {
         margin-bottom: 0.5rem;
         margin-right: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
       }
       
       .app-badges {
@@ -371,84 +409,68 @@ async function generateHtml(event) {
         gap: 1rem;
       }
       
-      iframe {
+      .accommodation-iframe,
+      .map-iframe {
         height: 400px;
       }
       
       .weather-iframe {
-        height: 250px;
+        height: 200px;
       }
-    }
-    
-    /* Loading animation for iframes */
-    @keyframes shimmer {
-      0% { background-position: -200px 0; }
-      100% { background-position: calc(200px + 100%) 0; }
-    }
-    
-    .iframe-container::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.1), transparent);
-      background-size: 200px 100%;
-      animation: shimmer 2s infinite;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s ease;
     }
   </style>
 </head>
 <body>
 
 <header>
-  <a href="https://www.parkrunnertourist.co.uk" target="_self" title="Go to parkrunner tourist homepage">🏃‍♂️ parkrunner tourist</a>
+  <a href="https://www.parkrunnertourist.co.uk" target="_self" title="Go to parkrunner tourist homepage">parkrunner tourist</a>
   <div></div>
 </header>
 
 <main>
-  <h1>🏨 Accommodation near ${name} parkrun</h1>
+  <h1>Accommodation near ${name} parkrun</h1>
   
   <div class="description">
     ${description}
   </div>
 
-  <div class="weather-section">
-    <div class="iframe-container">
-      <div class="iframe-label">🌤️ Weather Forecast</div>
-      <iframe class="weather-iframe" src="${weatherIframeUrl}" title="Weather forecast for ${name}"></iframe>
-    </div>
-  </div>
-
-  <div class="toggle-controls">
-    <h2 class="section-title">🏨 Hotel Prices</h2>
-    <div>
-      <button class="toggle-btn active" onclick="switchView('listview')" id="btn-listview">📋 List View</button>
-      <button class="toggle-btn" onclick="switchView('map')" id="btn-map">🗺️ Map View</button>
-    </div>
-  </div>
-
-  <div class="iframe-grid">
-    <div class="iframe-container">
-      <div class="iframe-label">🏨 Accommodation</div>
-      <iframe id="stay22Frame" scrolling="no"
-        src="${stay22BaseUrl}&viewmode=listview&listviewexpand=true"
-        title="Stay22 accommodation listing">
-      </iframe>
+  <div class="content-grid">
+    <div class="hotels-section">
+      <div class="toggle-controls">
+        <h2 class="section-title">Hotel Prices</h2>
+        <div>
+          <button class="toggle-btn active" onclick="switchView('listview')" id="btn-listview">List View</button>
+          <button class="toggle-btn" onclick="switchView('map')" id="btn-map">Map View</button>
+        </div>
+      </div>
+      
+      <div class="iframe-container">
+        <div class="iframe-label">Accommodation</div>
+        <iframe id="stay22Frame" class="accommodation-iframe" scrolling="no"
+          src="${stay22BaseUrl}&viewmode=listview&listviewexpand=true"
+          title="Stay22 accommodation listing">
+        </iframe>
+      </div>
     </div>
 
-    <div class="iframe-container">
-      <div class="iframe-label">🗺️ Parkrun Location</div>
-      <iframe src="${mainIframeUrl}" title="Parkrun Map"></iframe>
+    <div class="weather-section">
+      <div class="iframe-container">
+        <div class="iframe-label">Weather Forecast</div>
+        <iframe class="weather-iframe" src="${weatherIframeUrl}" title="Weather forecast for ${name}"></iframe>
+      </div>
+    </div>
+
+    <div class="map-section">
+      <div class="iframe-container">
+        <div class="iframe-label">Parkrun Location</div>
+        <iframe class="map-iframe" src="${mainIframeUrl}" title="Parkrun Map"></iframe>
+      </div>
     </div>
   </div>
 </main>
 
 <div class="download-footer">
-  📱 Download The App
+  Download The App
   <div class="app-badges">
     <a href="https://apps.apple.com/gb/app/parkrunner-tourist/id6743163993" target="_blank" rel="noopener noreferrer">
       <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" />
