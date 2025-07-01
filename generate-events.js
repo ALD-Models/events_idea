@@ -6,6 +6,8 @@ const EVENTS_URL = 'https://raw.githubusercontent.com/ALD-Models/Testing/refs/he
 const OUTPUT_DIR = './events';
 const MAX_EVENTS = 13;
 const BASE_URL = 'https://www.parkrunnertourist.co.uk/events';
+const parkrunDomain = "www.parkrun.org.uk";  
+
 
 // Helper: fetch JSON over HTTPS
 function fetchJson(url) {
