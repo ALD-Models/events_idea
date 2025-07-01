@@ -69,12 +69,26 @@
     h1 {
       font-size: 2.5rem;
       font-weight: 700;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
       background: linear-gradient(135deg, #2e7d32, #4caf50);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       text-align: center;
+      position: relative;
+      padding: 2rem 0;
+    }
+    
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 4px;
+      background: linear-gradient(135deg, #4caf50, #2e7d32);
+      border-radius: 2px;
     }
     
     .description {
@@ -195,8 +209,92 @@
     }
     
     .weather-iframe {
-      height: 300px;
+      height: 200px;
       width: 100%;
+    }
+    
+    .parkrun-actions {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .action-btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      font-weight: 600;
+      border: 2px solid #4caf50;
+      transition: all 0.3s ease;
+      background: linear-gradient(135deg, #4caf50, #2e7d32);
+      color: white;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 1rem;
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+    
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+      background: linear-gradient(135deg, #388e3c, #1b5e20);
+    }
+    
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      backdrop-filter: blur(5px);
+    }
+    
+    .modal-content {
+      background-color: white;
+      margin: 2% auto;
+      padding: 0;
+      border-radius: 1rem;
+      width: 90%;
+      max-width: 1000px;
+      height: 90%;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .modal-header {
+      background: linear-gradient(135deg, #4caf50, #2e7d32);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 1rem 1rem 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .close {
+      color: white;
+      float: right;
+      font-size: 2rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    
+    .close:hover {
+      transform: scale(1.1);
+    }
+    
+    .modal iframe {
+      width: 100%;
+      height: calc(100% - 80px);
+      border: none;
+      border-radius: 0 0 1rem 1rem;
     }
     
     .accommodation-iframe {
@@ -349,6 +447,12 @@
 <main>
   <h1>Accommodation near albert parkrun</h1>
   
+  <div class="parkrun-actions">
+    <a href="#" class="action-btn" onclick="openModal('courseModal', 'albert')">Course Map</a>
+    <a href="#" class="action-btn" onclick="openModal('volunteerModal', 'albert')">Volunteer Roster</a>
+    <a href="https://www.google.com/maps/dir/?api=1&destination=54.564972,-1.231788" target="_blank" class="action-btn">Directions</a>
+  </div>
+  
   <div class="description">
     <p>No description available.</p>
   </div>
@@ -356,7 +460,7 @@
   <div class="content-grid">
     <div class="hotels-section">
       <div class="toggle-controls">
-        <h2 class="section-title">Hotel Prices</h2>
+        <h2 class="section-title">Hotel Prices & Accommodation</h2>
         <div>
           <button class="toggle-btn active" onclick="switchView('listview')" id="btn-listview">List View</button>
           <button class="toggle-btn" onclick="switchView('map')" id="btn-map">Map View</button>
@@ -381,12 +485,34 @@
 
     <div class="map-section">
       <div class="iframe-container">
-        <div class="iframe-label">Parkrun Location</div>
-        <iframe class="map-iframe" src="https://parkrunnertourist.co.uk/main?lat=54.564972&lon=-1.231788&zoom=13" title="Parkrun Map"></iframe>
+        <div class="iframe-label">parkrun Location</div>
+        <iframe class="map-iframe" src="https://parkrunnertourist.co.uk/main?lat=54.564972&lon=-1.231788&zoom=13" title="parkrun Map"></iframe>
       </div>
     </div>
   </div>
 </main>
+
+<!-- Course Modal -->
+<div id="courseModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Course Map</h2>
+      <span class="close" onclick="closeModal('courseModal')">&times;</span>
+    </div>
+    <iframe id="courseIframe" src="" title="Course Map"></iframe>
+  </div>
+</div>
+
+<!-- Volunteer Modal -->
+<div id="volunteerModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Volunteer Roster</h2>
+      <span class="close" onclick="closeModal('volunteerModal')">&times;</span>
+    </div>
+    <iframe id="volunteerIframe" src="" title="Volunteer Roster"></iframe>
+  </div>
+</div>
 
 <div class="download-footer">
   Download The App
@@ -411,6 +537,43 @@
     iframe.src = baseUrl + "&viewmode=" + mode + "&listviewexpand=" + (mode === 'listview');
     document.getElementById('btn-listview').classList.toggle('active', mode === 'listview');
     document.getElementById('btn-map').classList.toggle('active', mode === 'map');
+  }
+  
+  // Modal functions
+  function openModal(modalId, eventName) {
+    const modal = document.getElementById(modalId);
+    const eventSlug = eventName.toLowerCase().replace(/\s+/g, '');
+    
+    if (modalId === 'courseModal') {
+      const courseIframe = document.getElementById('courseIframe');
+      courseIframe.src = `https://www.parkrun.org.uk/${eventSlug}/course/`;
+    } else if (modalId === 'volunteerModal') {
+      const volunteerIframe = document.getElementById('volunteerIframe');
+      volunteerIframe.src = `https://www.parkrun.org.uk/${eventSlug}/futureroster/`;
+    }
+    
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+  
+  function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    
+    // Clear iframe src to stop loading
+    if (modalId === 'courseModal') {
+      document.getElementById('courseIframe').src = '';
+    } else if (modalId === 'volunteerModal') {
+      document.getElementById('volunteerIframe').src = '';
+    }
+  }
+  
+  // Close modal when clicking outside
+  window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+      closeModal(event.target.id);
+    }
   }
   
   // Add loading states for iframes

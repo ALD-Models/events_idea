@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Accommodation near bushy parkrun</title>
-  <meta name="description" content="Find and book hotels, campsites, and cafes around bushy parkrun." />
-  <meta name="keywords" content="parkrun, accommodation, hotels, stay, tourist, bushy" />
-  <link rel="canonical" href="https://www.parkrunnertourist.co.uk/events/bushy.html" />
+  <title>Accommodation near amager parkrun</title>
+  <meta name="description" content="Find and book hotels, campsites, and cafes around amager parkrun." />
+  <meta name="keywords" content="parkrun, accommodation, hotels, stay, tourist, amager" />
+  <link rel="canonical" href="https://www.parkrunnertourist.co.uk/events/amager.html" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -445,12 +445,12 @@
 </header>
 
 <main>
-  <h1>Accommodation near bushy parkrun</h1>
+  <h1>Accommodation near amager parkrun</h1>
   
   <div class="parkrun-actions">
-    <a href="#" class="action-btn" onclick="openModal('courseModal', 'bushy')">Course Map</a>
-    <a href="#" class="action-btn" onclick="openModal('volunteerModal', 'bushy')">Volunteer Roster</a>
-    <a href="https://www.google.com/maps/dir/?api=1&destination=51.410992,-0.335791" target="_blank" class="action-btn">Directions</a>
+    <a href="#" class="action-btn" onclick="openModal('courseModal', 'amager')">Course Map</a>
+    <a href="#" class="action-btn" onclick="openModal('volunteerModal', 'amager')">Volunteer Roster</a>
+    <a href="https://www.google.com/maps/dir/?api=1&destination=55.653057,12.575108" target="_blank" class="action-btn">Directions</a>
   </div>
   
   <div class="description">
@@ -470,7 +470,7 @@
       <div class="iframe-container">
         <div class="iframe-label">Accommodation</div>
         <iframe id="stay22Frame" class="accommodation-iframe" scrolling="no"
-          src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=51.410992&lng=-0.335791&checkin=2025-07-04&maincolor=7dd856&venue=bushy%20parkrun&viewmode=listview&listviewexpand=true"
+          src="https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=55.653057&lng=12.575108&checkin=2025-07-04&maincolor=7dd856&venue=amager%20parkrun&viewmode=listview&listviewexpand=true"
           title="Stay22 accommodation listing">
         </iframe>
       </div>
@@ -479,14 +479,14 @@
     <div class="weather-section">
       <div class="iframe-container">
         <div class="iframe-label">Weather Forecast</div>
-        <iframe class="weather-iframe" src="https://parkrunnertourist.co.uk/weather?lat=51.410992&lon=-0.335791" title="Weather forecast for bushy"></iframe>
+        <iframe class="weather-iframe" src="https://parkrunnertourist.co.uk/weather?lat=55.653057&lon=12.575108" title="Weather forecast for amager"></iframe>
       </div>
     </div>
 
     <div class="map-section">
       <div class="iframe-container">
         <div class="iframe-label">parkrun Location</div>
-        <iframe class="map-iframe" src="https://parkrunnertourist.co.uk/main?lat=51.410992&lon=-0.335791&zoom=13" title="parkrun Map"></iframe>
+        <iframe class="map-iframe" src="https://parkrunnertourist.co.uk/main?lat=55.653057&lon=12.575108&zoom=13" title="parkrun Map"></iframe>
       </div>
     </div>
   </div>
@@ -533,7 +533,7 @@
 <script>
   function switchView(mode) {
     const iframe = document.getElementById('stay22Frame');
-    const baseUrl = "https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=51.410992&lng=-0.335791&checkin=2025-07-04&maincolor=7dd856&venue=bushy%20parkrun";
+    const baseUrl = "https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=55.653057&lng=12.575108&checkin=2025-07-04&maincolor=7dd856&venue=amager%20parkrun";
     iframe.src = baseUrl + "&viewmode=" + mode + "&listviewexpand=" + (mode === 'listview');
     document.getElementById('btn-listview').classList.toggle('active', mode === 'listview');
     document.getElementById('btn-map').classList.toggle('active', mode === 'map');

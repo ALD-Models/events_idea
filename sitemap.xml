@@ -80,4 +80,28 @@
       <priority>0.6</priority>
     </url>
   
+
+    <url>
+      <loc>https://www.parkrunnertourist.co.uk/events/pollok.html</loc>
+      <lastmod>2025-07-01</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.6</priority>
+    </url>
+  
+
+    <url>
+      <loc>https://www.parkrunnertourist.co.uk/events/amager.html</loc>
+      <lastmod>2025-07-01</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.6</priority>
+    </url>
+  
+
+    <url>
+      <loc>https://www.parkrunnertourist.co.uk/events/gorleston.html</loc>
+      <lastmod>2025-07-01</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.6</priority>
+    </url>
+  
 </urlset>
