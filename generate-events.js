@@ -804,7 +804,7 @@ function generateSitemap(slugs) {
       <loc>${BASE_URL}/${slug}.html</loc>
       <lastmod>${today}</lastmod>
       <changefreq>monthly</changefreq>
-      <priority>0.6</priority>
+      <priority>0.7</priority>
     </url>
   `).join('\n');
 
@@ -848,7 +848,7 @@ async function main() {
 
     // Save sitemap.xml in root directory
     const sitemapContent = generateSitemap(slugs);
-    fs.writeFileSync('./sitemap.xml', sitemapContent, 'utf-8');
+    fs.writeFileSync('./sitemap.events.xml', sitemapContent, 'utf-8');
     console.log('Generated sitemap.xml in root folder.');
 
     console.log(`Successfully generated ${selectedEvents.length} event HTML files.`);
