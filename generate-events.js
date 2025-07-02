@@ -650,8 +650,7 @@ async function generateHtml(event) {
 </header>
 
 <main>
-  <h1>${longName}</h1>
-  <div class="subtitle">Accommodation near ${name} parkrun</div>
+  <div class="subtitle">Accommodation near ${longName} </div>
   
   <div class="parkrun-actions">
     <a href="#" class="action-btn" onclick="openModal('courseModal', '${name}')">Course Map</a>
@@ -666,7 +665,7 @@ async function generateHtml(event) {
   <div class="content-grid">
     <div class="hotels-section">
       <div class="iframe-container">
-        <h2 class="section-title">Accommodation</h2>
+        <h2 class="section-title">Hotel Prices</h2>
         <div>
           <button class="toggle-btn active" onclick="switchView('listview')" id="btn-listview">List View</button>
           <button class="toggle-btn" onclick="switchView('map')" id="btn-map">Map View</button>
@@ -680,7 +679,7 @@ async function generateHtml(event) {
 
     <div class="right-column">
       <div class="iframe-container">
-        <h2 class="section-title">Parkrun Location</h2>
+        <h2 class="section-title">parkrun Location</h2>
         <iframe class="map-iframe" src="${mainIframeUrl}" title="parkrun Map"></iframe>
       </div>
       
