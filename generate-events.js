@@ -193,9 +193,20 @@ async function generateHtml(event) {
   <title>${pageTitle}</title>
   <meta name="description" content="Find and book hotels, campsites, and cafes around ${name} parkrun." />
   <meta name="keywords" content="parkrun, accommodation, hotels, stay, tourist, ${name.toLowerCase()}" />
+  <meta name="author" content="Jake Lofthouse">
+  meta property="og:image" content="https://www.parkrunnertourist.co.uk/Images/Feature.jpg">
+  <meta property="og:url" content="https://www.parkrunnertourist.co.uk">
+  <meta property="og:type" content="website">
   <link rel="canonical" href="${BASE_URL}/${slugify(name)}.html" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Apple Smart Banner -->
+  <meta name="apple-itunes-app" content="app-id=6743163993, app-argument=https://www.parkrunnertourist.co.uk">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
   <style>
     * {
       box-sizing: border-box;
