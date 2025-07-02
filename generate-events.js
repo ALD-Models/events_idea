@@ -166,11 +166,11 @@ async function generateHtml(event) {
       if (wikiDesc && wikiDesc.length > 50) {
         description = `<p>${wikiDesc}</p><p><em>Source: <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(name.replace(/\s+/g, '_'))}" target="_blank" rel="noopener noreferrer">Wikipedia</a></em></p>`;
       } else {
-        description = `<p>${description.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
+        description = `<p>${description.replace(/</g, '<').replace(/>/g, '>')}</p>`;
       }
     } catch (e) {
       console.warn(`Failed to fetch Wikipedia description for ${name}: ${e.message}`);
-      description = `<p>${description.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
+      description = `<p>${description.replace(/</g, '<').replace(/>/g, '>')}</p>`;
     }
   }
 
@@ -321,19 +321,11 @@ async function generateHtml(event) {
       border-radius: 2px;
     }
     
-    .toggle-controls {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 1rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      margin-bottom: 1rem;
-      border: 1px solid rgba(76, 175, 80, 0.2);
-    }
-    
     .toggle-btn {
       padding: 0.75rem 1.5rem;
       border-radius: 0.75rem;
       margin-right: 1rem;
+      margin-bottom: 1rem;
       cursor: pointer;
       font-weight: 600;
       border: 2px solid #4caf50;
@@ -605,6 +597,10 @@ async function generateHtml(event) {
       .map-iframe {
         height: 450px;
       }
+      
+      .app-badges {
+        justify-content: center;
+      }
     }
     
     @media (max-width: 768px) {
@@ -635,6 +631,7 @@ async function generateHtml(event) {
       .app-badges {
         flex-direction: column;
         gap: 1rem;
+        align-items: center;
       }
       
       .accommodation-iframe,
@@ -671,16 +668,12 @@ async function generateHtml(event) {
 
   <div class="content-grid">
     <div class="hotels-section">
-      <div class="toggle-controls">
+      <div class="iframe-container">
         <h2 class="section-title">Accommodation</h2>
         <div>
           <button class="toggle-btn active" onclick="switchView('listview')" id="btn-listview">List View</button>
           <button class="toggle-btn" onclick="switchView('map')" id="btn-map">Map View</button>
         </div>
-      </div>
-      
-      <div class="iframe-container">
-        <div class="iframe-label">Hotels & Accommodation</div>
         <iframe id="stay22Frame" class="accommodation-iframe" scrolling="no"
           src="${stay22BaseUrl}&viewmode=listview&listviewexpand=true"
           title="Stay22 accommodation listing">
@@ -690,7 +683,7 @@ async function generateHtml(event) {
 
     <div class="weather-section">
       <div class="iframe-container">
-        <div class="iframe-label">Weather Forecast</div>
+        <div class="iframe-label">Weather This Week</div>
         <iframe class="weather-iframe" src="${weatherIframeUrl}" title="Weather forecast for ${name}"></iframe>
       </div>
     </div>
