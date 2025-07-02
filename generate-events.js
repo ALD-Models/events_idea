@@ -195,7 +195,7 @@ async function generateHtml(event) {
   <meta name="keywords" content="parkrun, accommodation, hotels, stay, tourist, ${name.toLowerCase()}" />
   <link rel="canonical" href="${BASE_URL}/${slugify(name)}.html" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * {
       box-sizing: border-box;
@@ -459,17 +459,24 @@ async function generateHtml(event) {
     .modal-header {
       background: linear-gradient(135deg, #4caf50, #2e7d32);
       color: white;
-      padding: 1rem 2rem;
+      padding: 2rem 2rem;
       border-radius: 1rem 1rem 0 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     
+    .modal-header h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0;
+      color: white;
+    }
+    
     .close {
       color: white;
       float: right;
-      font-size: 2rem;
+      font-size: 2.5rem;
       font-weight: bold;
       cursor: pointer;
       transition: transform 0.3s ease;
@@ -481,7 +488,7 @@ async function generateHtml(event) {
     
     .modal iframe {
       width: 100%;
-      height: calc(100% - 80px);
+      height: calc(100% - 100px);
       border: none;
       border-radius: 0 0 1rem 1rem;
     }
@@ -642,6 +649,21 @@ async function generateHtml(event) {
       .weather-iframe {
         height: 200px;
       }
+      
+      .modal-header h2 {
+        font-size: 1.5rem;
+      }
+      
+      .close {
+        font-size: 2rem;
+      }
+    }
+    
+    /* Hide Buy Me a Coffee widget on mobile */
+    @media (max-width: 768px) {
+      .bmc-widget {
+        display: none !important;
+      }
     }
   </style>
 </head>
@@ -683,14 +705,14 @@ async function generateHtml(event) {
 
     <div class="weather-section">
       <div class="iframe-container">
-        <div class="iframe-label">Weather This Week</div>
+        <h2 class="section-title">Weather This Week</h2>
         <iframe class="weather-iframe" src="${weatherIframeUrl}" title="Weather forecast for ${name}"></iframe>
       </div>
     </div>
 
     <div class="map-section">
       <div class="iframe-container">
-        <div class="iframe-label">parkrun Location</div>
+        <h2 class="section-title">Parkrun Location</h2>
         <iframe class="map-iframe" src="${mainIframeUrl}" title="parkrun Map"></iframe>
       </div>
     </div>
@@ -734,6 +756,9 @@ async function generateHtml(event) {
 <footer>
   &copy; ${new Date().getFullYear()} parkrunner tourist - Find your next running adventure
 </footer>
+
+<!-- Buy Me a Coffee Widget - Hidden on mobile -->
+<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="jlofthouse" data-description="Support me on Buy me a coffee!" data-message="Support The App" data-color="#40DCA5" data-position="Right" data-x_margin="18" data-y_margin="18" class="bmc-widget"></script>
 
 <script>
   function switchView(mode) {
