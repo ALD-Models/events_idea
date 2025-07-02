@@ -165,7 +165,7 @@
     
     .content-grid {
       display: grid;
-      grid-template-columns: 1fr 300px 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 2rem;
       margin-bottom: 2rem;
     }
@@ -185,24 +185,6 @@
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
     }
     
-    .iframe-label {
-      font-weight: 600;
-      color: #2e7d32;
-      margin-bottom: 0.75rem;
-      font-size: 1.1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .iframe-label::before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      background: #4caf50;
-      border-radius: 50%;
-    }
-    
     iframe {
       width: 100%;
       border-radius: 0.75rem;
@@ -211,7 +193,7 @@
     }
     
     .weather-iframe {
-      height: 200px;
+      height: 300px;
       width: 100%;
     }
     
@@ -312,21 +294,18 @@
     }
     
     .map-iframe {
-      height: 600px;
+      height: 400px;
     }
     
     .hotels-section {
       grid-column: 1;
     }
     
-    .weather-section {
+    .right-column {
       grid-column: 2;
       display: flex;
       flex-direction: column;
-    }
-    
-    .map-section {
-      grid-column: 3;
+      gap: 2rem;
     }
     
     /* Download footer */
@@ -394,18 +373,14 @@
       }
       
       /* Mobile order: parkrun location, hotels, weather */
-      .map-section {
+      .right-column {
         order: 1;
         grid-column: 1;
+        flex-direction: column-reverse;
       }
       
       .hotels-section {
         order: 2;
-        grid-column: 1;
-      }
-      
-      .weather-section {
-        order: 3;
         grid-column: 1;
       }
       
@@ -472,9 +447,9 @@
       }
     }
     
-    /* Hide Buy Me a Coffee widget on mobile */
-    @media (max-width: 768px) {
-      .bmc-widget {
+    /* Hide Buy Me a Coffee widget on mobile and tablets */
+    @media (max-width: 1024px) {
+      [data-name="BMC-Widget"] {
         display: none !important;
       }
     }
@@ -514,17 +489,15 @@
       </div>
     </div>
 
-    <div class="weather-section">
-      <div class="iframe-container">
-        <h2 class="section-title">Weather This Week</h2>
-        <iframe class="weather-iframe" src="https://parkrunnertourist.co.uk/weather?lat=53.374268&lon=-2.160702" title="Weather forecast for bramhall"></iframe>
-      </div>
-    </div>
-
-    <div class="map-section">
+    <div class="right-column">
       <div class="iframe-container">
         <h2 class="section-title">Parkrun Location</h2>
         <iframe class="map-iframe" src="https://parkrunnertourist.co.uk/main?5k&lat=53.374268&lon=-2.160702&zoom=13" title="parkrun Map"></iframe>
+      </div>
+      
+      <div class="iframe-container">
+        <h2 class="section-title">Weather This Week</h2>
+        <iframe class="weather-iframe" src="https://parkrunnertourist.co.uk/weather?lat=53.374268&lon=-2.160702" title="Weather forecast for bramhall"></iframe>
       </div>
     </div>
   </div>
@@ -568,8 +541,8 @@
   &copy; 2025 parkrunner tourist - Find your next running adventure
 </footer>
 
-<!-- Buy Me a Coffee Widget - Hidden on mobile -->
-<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="jlofthouse" data-description="Support me on Buy me a coffee!" data-message="Support The App" data-color="#40DCA5" data-position="Right" data-x_margin="18" data-y_margin="18" class="bmc-widget"></script>
+<!-- Buy Me a Coffee Widget - Hidden on mobile and tablets -->
+<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="jlofthouse" data-description="Support me on Buy me a coffee!" data-message="Support The App" data-color="#40DCA5" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
 
 <script>
   function switchView(mode) {
