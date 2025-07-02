@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hotel Prices near amager parkrun</title>
+  <title>Accommodation near amager parkrun</title>
   <meta name="description" content="Find and book hotels, campsites, and cafes around amager parkrun." />
   <meta name="keywords" content="parkrun, accommodation, hotels, stay, tourist, amager" />
   <link rel="canonical" href="https://www.parkrunnertourist.co.uk/events/amager.html" />
@@ -67,9 +67,9 @@
     }
     
     h1 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 2rem;
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
       background: linear-gradient(135deg, #2e7d32, #4caf50);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -77,12 +77,22 @@
       text-align: center;
       position: relative;
       padding: 2rem 0;
+      line-height: 1.2;
     }
     
-    h1::after {
+    .subtitle {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #4caf50;
+      text-align: center;
+      margin-bottom: 3rem;
+      position: relative;
+    }
+    
+    .subtitle::after {
       content: '';
       position: absolute;
-      bottom: 0;
+      bottom: -1rem;
       left: 50%;
       transform: translateX(-50%);
       width: 100px;
@@ -96,7 +106,7 @@
       padding: 2rem;
       border-radius: 1rem;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      margin-bottom: 2rem;
+      margin-bottom: 3rem;
       border: 1px solid rgba(76, 175, 80, 0.2);
     }
     
@@ -216,7 +226,7 @@
     .parkrun-actions {
       display: flex;
       gap: 1rem;
-      margin-bottom: 2rem;
+      margin-bottom: 3rem;
       flex-wrap: wrap;
       justify-content: center;
     }
@@ -416,7 +426,11 @@
       }
       
       h1 {
-        font-size: 2rem;
+        font-size: 2.5rem;
+      }
+      
+      .subtitle {
+        font-size: 1.2rem;
       }
       
       header {
@@ -455,7 +469,8 @@
 </header>
 
 <main>
-  <h1>Hotel Prices near amager parkrun</h1>
+  <h1>Amager Fælled parkrun</h1>
+  <div class="subtitle">Accommodation near amager parkrun</div>
   
   <div class="parkrun-actions">
     <a href="#" class="action-btn" onclick="openModal('courseModal', 'amager')">Course Map</a>
@@ -463,21 +478,12 @@
     <a href="https://www.google.com/maps/dir/?api=1&destination=55.653057,12.575108" target="_blank" class="action-btn">Directions</a>
   </div>
   
-  <div class="description">
-    <p>No description available.</p>
-  </div>
+  
 
   <div class="content-grid">
-    <div class="map-section">
-      <div class="iframe-container">
-        <div class="iframe-label">parkrun Location</div>
-        <iframe class="map-iframe" src="https://parkrunnertourist.co.uk/main?lat=55.653057&lon=12.575108&zoom=13" title="parkrun Map"></iframe>
-      </div>
-    </div>
-
     <div class="hotels-section">
       <div class="toggle-controls">
-        <h2 class="section-title">Hotel Prices</h2>
+        <h2 class="section-title">Accommodation</h2>
         <div>
           <button class="toggle-btn active" onclick="switchView('listview')" id="btn-listview">List View</button>
           <button class="toggle-btn" onclick="switchView('map')" id="btn-map">Map View</button>
@@ -497,6 +503,13 @@
       <div class="iframe-container">
         <div class="iframe-label">Weather Forecast</div>
         <iframe class="weather-iframe" src="https://parkrunnertourist.co.uk/weather?lat=55.653057&lon=12.575108" title="Weather forecast for amager"></iframe>
+      </div>
+    </div>
+
+    <div class="map-section">
+      <div class="iframe-container">
+        <div class="iframe-label">parkrun Location</div>
+        <iframe class="map-iframe" src="https://parkrunnertourist.co.uk/main?5k&lat=55.653057&lon=12.575108&zoom=13" title="parkrun Map"></iframe>
       </div>
     </div>
   </div>
