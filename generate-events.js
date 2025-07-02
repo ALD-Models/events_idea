@@ -147,34 +147,40 @@ async function fetchWikipediaDescription(eventName) {
 // Generate the HTML content for each event page
 async function generateHtml(event) {
   const name = event.properties.eventname || 'Unknown event';
+  const longName = event.properties.EventLongName || name;
   const location = event.properties.EventLocation || '';
   const coords = event.geometry.coordinates || [];
   const latitude = coords[1] || 0;
   const longitude = coords[0] || 0;
   const encodedName = encodeURIComponent(`${name} parkrun`);
   const checkinDate = getNextFridayDateISO();
-  const pageTitle = `Hotel Prices near ${name} parkrun`;
+  const pageTitle = `Accommodation near ${name} parkrun`;
   const parkrunDomain = getParkrunDomain(latitude, longitude);
 
-  let description = event.properties.EventDescription || 'No description available.';
+  let description = event.properties.EventDescription || '';
+  const hasDescription = description && description.trim() !== '' && description.trim() !== 'No description available.';
 
-  try {
-    const wikiDesc = await fetchWikipediaDescription(name);
-    if (wikiDesc && wikiDesc.length > 50) {
-      description = `<p>${wikiDesc}</p><p><em>Source: <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(name.replace(/\s+/g, '_'))}" target="_blank" rel="noopener noreferrer">Wikipedia</a></em></p>`;
-    } else {
+  if (hasDescription) {
+    try {
+      const wikiDesc = await fetchWikipediaDescription(name);
+      if (wikiDesc && wikiDesc.length > 50) {
+        description = `<p>${wikiDesc}</p><p><em>Source: <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(name.replace(/\s+/g, '_'))}" target="_blank" rel="noopener noreferrer">Wikipedia</a></em></p>`;
+      } else {
+        description = `<p>${description.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
+      }
+    } catch (e) {
+      console.warn(`Failed to fetch Wikipedia description for ${name}: ${e.message}`);
       description = `<p>${description.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
     }
-  } catch (e) {
-    console.warn(`Failed to fetch Wikipedia description for ${name}: ${e.message}`);
-    description = `<p>${description.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
   }
 
   // Stay22 iframe base URL with scroll locking via scrolling="no"
   const stay22BaseUrl = `https://www.stay22.com/embed/gm?aid=parkrunnertourist&lat=${latitude}&lng=${longitude}&checkin=${checkinDate}&maincolor=7dd856&venue=${encodedName}`;
 
-  // Main iframe URL with lat/lon and zoom=13 as requested
-  const mainIframeUrl = `https://parkrunnertourist.co.uk/main?lat=${latitude}&lon=${longitude}&zoom=13`;
+  // Determine if it's a junior parkrun and set the appropriate URL
+  const isJunior = longName.toLowerCase().includes('junior');
+  const parkrunType = isJunior ? 'Junior' : '5k';
+  const mainIframeUrl = `https://parkrunnertourist.co.uk/main?${parkrunType}&lat=${latitude}&lon=${longitude}&zoom=13`;
 
   // Weather iframe URL
   const weatherIframeUrl = `https://parkrunnertourist.co.uk/weather?lat=${latitude}&lon=${longitude}`;
@@ -248,9 +254,9 @@ async function generateHtml(event) {
     }
     
     h1 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 2rem;
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
       background: linear-gradient(135deg, #2e7d32, #4caf50);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -258,12 +264,22 @@ async function generateHtml(event) {
       text-align: center;
       position: relative;
       padding: 2rem 0;
+      line-height: 1.2;
     }
     
-    h1::after {
+    .subtitle {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #4caf50;
+      text-align: center;
+      margin-bottom: 3rem;
+      position: relative;
+    }
+    
+    .subtitle::after {
       content: '';
       position: absolute;
-      bottom: 0;
+      bottom: -1rem;
       left: 50%;
       transform: translateX(-50%);
       width: 100px;
@@ -277,7 +293,7 @@ async function generateHtml(event) {
       padding: 2rem;
       border-radius: 1rem;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      margin-bottom: 2rem;
+      margin-bottom: 3rem;
       border: 1px solid rgba(76, 175, 80, 0.2);
     }
     
@@ -397,7 +413,7 @@ async function generateHtml(event) {
     .parkrun-actions {
       display: flex;
       gap: 1rem;
-      margin-bottom: 2rem;
+      margin-bottom: 3rem;
       flex-wrap: wrap;
       justify-content: center;
     }
@@ -597,7 +613,11 @@ async function generateHtml(event) {
       }
       
       h1 {
-        font-size: 2rem;
+        font-size: 2.5rem;
+      }
+      
+      .subtitle {
+        font-size: 1.2rem;
       }
       
       header {
@@ -636,7 +656,8 @@ async function generateHtml(event) {
 </header>
 
 <main>
-  <h1>Hotel Prices near ${name} parkrun</h1>
+  <h1>${longName}</h1>
+  <div class="subtitle">Accommodation near ${name} parkrun</div>
   
   <div class="parkrun-actions">
     <a href="#" class="action-btn" onclick="openModal('courseModal', '${name}')">Course Map</a>
@@ -644,21 +665,14 @@ async function generateHtml(event) {
     <a href="https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}" target="_blank" class="action-btn">Directions</a>
   </div>
   
-  <div class="description">
+  ${hasDescription ? `<div class="description">
     ${description}
-  </div>
+  </div>` : ''}
 
   <div class="content-grid">
-    <div class="map-section">
-      <div class="iframe-container">
-        <div class="iframe-label">parkrun Location</div>
-        <iframe class="map-iframe" src="${mainIframeUrl}" title="parkrun Map"></iframe>
-      </div>
-    </div>
-
     <div class="hotels-section">
       <div class="toggle-controls">
-        <h2 class="section-title">Hotel Prices</h2>
+        <h2 class="section-title">Accommodation</h2>
         <div>
           <button class="toggle-btn active" onclick="switchView('listview')" id="btn-listview">List View</button>
           <button class="toggle-btn" onclick="switchView('map')" id="btn-map">Map View</button>
@@ -678,6 +692,13 @@ async function generateHtml(event) {
       <div class="iframe-container">
         <div class="iframe-label">Weather Forecast</div>
         <iframe class="weather-iframe" src="${weatherIframeUrl}" title="Weather forecast for ${name}"></iframe>
+      </div>
+    </div>
+
+    <div class="map-section">
+      <div class="iframe-container">
+        <div class="iframe-label">parkrun Location</div>
+        <iframe class="map-iframe" src="${mainIframeUrl}" title="parkrun Map"></iframe>
       </div>
     </div>
   </div>
