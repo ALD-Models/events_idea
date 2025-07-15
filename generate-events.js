@@ -191,7 +191,7 @@ async function generateHtml(event, relativePath) {
   // Determine if it's a junior parkrun and set the appropriate URL
   const isJunior = longName.toLowerCase().includes('junior');
   const parkrunType = isJunior ? 'Junior' : '5k';
-  const mainIframeUrl = `https://parkrunnertourist.co.uk/main?${parkrunType}&lat=${latitude}&lon=${longitude}&zoom=13`;
+  const mainIframeUrl = `https://parkrunnertourist.co.uk/hello?${parkrunType}&lat=${latitude}&lon=${longitude}&zoom=13`;
 
   // Weather iframe URL
   const weatherIframeUrl = `https://parkrunnertourist.co.uk/weather?lat=${latitude}&lon=${longitude}`;
