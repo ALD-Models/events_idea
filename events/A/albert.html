@@ -241,6 +241,26 @@
       content: 'Loading weather...';
     }
     
+    /* Loading placeholder for map iframe */
+    .map-iframe[data-src]:not([src]) {
+      background: linear-gradient(45deg, #e8f5e8 25%, transparent 25%), 
+                  linear-gradient(-45deg, #e8f5e8 25%, transparent 25%), 
+                  linear-gradient(45deg, transparent 75%, #e8f5e8 75%), 
+                  linear-gradient(-45deg, transparent 75%, #e8f5e8 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      animation: loading 1s linear infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #4caf50;
+      font-weight: 500;
+    }
+    
+    .map-iframe[data-src]:not([src])::after {
+      content: 'Loading map...';
+    }
+    
     @keyframes loading {
       0% { background-position: 0 0, 0 10px, 10px -10px, -10px 0px; }
       100% { background-position: 20px 20px, 20px 30px, 30px 10px, 10px 20px; }
@@ -540,7 +560,7 @@
     <div class="right-column">
       <div class="iframe-container">
         <h2 class="section-title">parkrun Location</h2>
-        <iframe class="map-iframe" src="https://parkrunnertourist.co.uk/main?5k&lat=54.564972&lon=-1.231788&zoom=13" title="parkrun Map"></iframe>
+        <iframe class="map-iframe" data-src="https://parkrunnertourist.co.uk/main?5k&lat=54.564972&lon=-1.231788&zoom=13" title="parkrun Map"></iframe>
       </div>
       
       <div class="iframe-container">
@@ -638,40 +658,44 @@
     }
   }
   
-  // Load weather iframe only for real users (not crawlers/bots)
+  // Load weather and map iframes only for real users (not crawlers/bots)
   document.addEventListener('DOMContentLoaded', function() {
     // Check if this is likely a crawler/bot
     const userAgent = navigator.userAgent.toLowerCase();
     const isBot = /bot|crawler|spider|crawling|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegram|slackbot|discord|googlebot|bingbot|yahoo|duckduckbot|baiduspider|yandexbot|applebot|ia_archiver|curl|wget|python-requests|scrapy|selenium|phantomjs|headless/i.test(userAgent);
     
     if (!isBot && 'IntersectionObserver' in window) {
-      // Use Intersection Observer to load weather when it comes into view
-      const weatherIframe = document.querySelector('.weather-iframe');
-      if (weatherIframe && weatherIframe.dataset.src) {
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting && !entry.target.src) {
-              entry.target.src = entry.target.dataset.src;
-              observer.unobserve(entry.target);
-            }
-          });
-        }, {
-          rootMargin: '50px' // Load when within 50px of viewport
+      // Use Intersection Observer to load iframes when they come into view
+      const lazyIframes = document.querySelectorAll('iframe[data-src]');
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !entry.target.src) {
+            entry.target.src = entry.target.dataset.src;
+            observer.unobserve(entry.target);
+          }
         });
-        observer.observe(weatherIframe);
-      }
+      }, {
+        rootMargin: '50px' // Load when within 50px of viewport
+      });
+      
+      lazyIframes.forEach(iframe => {
+        observer.observe(iframe);
+      });
     } else if (!isBot) {
       // Fallback for browsers without Intersection Observer
       setTimeout(() => {
-        const weatherIframe = document.querySelector('.weather-iframe');
-        if (weatherIframe && weatherIframe.dataset.src && !weatherIframe.src) {
-          weatherIframe.src = weatherIframe.dataset.src;
-        }
+        const lazyIframes = document.querySelectorAll('iframe[data-src]');
+        lazyIframes.forEach(iframe => {
+          if (!iframe.src) {
+            iframe.src = iframe.dataset.src;
+          }
+        });
       }, 1000);
     }
     
     // Add loading states for other iframes
-    const iframes = document.querySelectorAll('iframe:not(.weather-iframe)');
+    const iframes = document.querySelectorAll('iframe:not([data-src])');
     iframes.forEach(iframe => {
       const container = iframe.closest('.iframe-container');
       iframe.addEventListener('load', function() {
