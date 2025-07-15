@@ -4,7 +4,8 @@ const path = require('path');
 
 const EVENTS_URL = 'https://raw.githubusercontent.com/ALD-Models/Testing/refs/heads/main/events1.json';
 const OUTPUT_DIR = './events';
-const MAX_EVENTS = 13;
+const MAX_EVENTS = 15;
+const MAX_FILES_PER_FOLDER = 999;
 const BASE_URL = 'https://www.parkrunnertourist.co.uk/events';
 
 // Country bounds for parkrun URL detection
@@ -144,8 +145,18 @@ async function fetchWikipediaDescription(eventName) {
   return null;
 }
 
+// Determine subfolder based on first letter of slug
+function getSubfolder(slug) {
+  const firstChar = slug.charAt(0).toLowerCase();
+  if (firstChar >= 'a' && firstChar <= 'z') {
+    return firstChar.toUpperCase();
+  }
+  // For numbers or special characters, use '0-9' folder
+  return '0-9';
+}
+
 // Generate the HTML content for each event page
-async function generateHtml(event) {
+async function generateHtml(event, relativePath) {
   const name = event.properties.eventname || 'Unknown event';
   const longName = event.properties.EventLongName || name;
   const location = event.properties.EventLocation || '';
@@ -166,11 +177,11 @@ async function generateHtml(event) {
       if (wikiDesc && wikiDesc.length > 50) {
         description = `<p>${wikiDesc}</p><p><em>Source: <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(name.replace(/\s+/g, '_'))}" target="_blank" rel="noopener noreferrer">Wikipedia</a></em></p>`;
       } else {
-        description = `<p>${description.replace(/</g, '<').replace(/>/g, '>')}</p>`;
+        description = `<p>${description.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
       }
     } catch (e) {
       console.warn(`Failed to fetch Wikipedia description for ${name}: ${e.message}`);
-      description = `<p>${description.replace(/</g, '<').replace(/>/g, '>')}</p>`;
+      description = `<p>${description.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
     }
   }
 
@@ -188,16 +199,20 @@ async function generateHtml(event) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${pageTitle}</title>
-  <meta name="description" content="Find and book hotels, campsites, and cafes around ${name} parkrun." />
-  <meta name="keywords" content="parkrun, accommodation, hotels, stay, tourist, ${name.toLowerCase()}" />
-  <meta name="author" content="Jake Lofthouse">
-  meta property="og:image" content="https://www.parkrunnertourist.co.uk/Images/Feature.jpg">
-  <meta property="og:url" content="https://www.parkrunnertourist.co.uk">
-  <meta property="og:type" content="website">
-  <link rel="canonical" href="${BASE_URL}/${slugify(name)}.html" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${pageTitle}</title>
+<meta name="description" content="Find and book hotels, campsites, and cafes around ${name} parkrun." />
+<meta name="keywords" content="parkrun, accommodation, hotels, stay, tourist, ${name.toLowerCase()}" />
+<meta name="author" content="Jake Lofthouse" />
+<meta name="geo.placename" content="${location}" />
+<meta name="geo.position" content="${latitude};${longitude}" />
+<meta property="og:url" content="https://www.parkrunnertourist.co.uk" />
+<meta property="og:type" content="website" />
+<meta name="robots" content="index, follow" />
+<meta name="language" content="en" />
+<link rel="canonical" href="${BASE_URL}/${relativePath}" />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -205,7 +220,16 @@ async function generateHtml(event) {
   <meta name="apple-itunes-app" content="app-id=6743163993, app-argument=https://www.parkrunnertourist.co.uk">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/x-icon" href="https://parkrunnertourist.co.uk/favicon.ico">
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-REFFZSK4XK"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-REFFZSK4XK');
+    </script>
 
   <style>
     * {
@@ -393,6 +417,31 @@ async function generateHtml(event) {
     .weather-iframe {
       height: 300px;
       width: 100%;
+    }
+    
+    /* Loading placeholder for weather iframe */
+    .weather-iframe[data-src]:not([src]) {
+      background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
+                  linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
+                  linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
+                  linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      animation: loading 1s linear infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-weight: 500;
+    }
+    
+    .weather-iframe[data-src]:not([src])::after {
+      content: 'Loading weather...';
+    }
+    
+    @keyframes loading {
+      0% { background-position: 0 0, 0 10px, 10px -10px, -10px 0px; }
+      100% { background-position: 20px 20px, 20px 30px, 30px 10px, 10px 20px; }
     }
     
     .parkrun-actions {
@@ -696,7 +745,7 @@ async function generateHtml(event) {
       
       <div class="iframe-container">
         <h2 class="section-title">Weather This Week</h2>
-        <iframe class="weather-iframe" src="${weatherIframeUrl}" title="Weather forecast for ${name}"></iframe>
+        <iframe class="weather-iframe" data-src="${weatherIframeUrl}" title="Weather forecast for ${name}"></iframe>
       </div>
     </div>
   </div>
@@ -737,7 +786,7 @@ async function generateHtml(event) {
 </div>
 
 <footer>
-  &copy; ${new Date().getFullYear()} parkrunner tourist - Find your next running adventure
+  &copy; ${new Date().getFullYear()} parkrunner tourist
 </footer>
 
 <!-- Buy Me a Coffee Widget - Hidden on mobile and tablets -->
@@ -789,9 +838,40 @@ async function generateHtml(event) {
     }
   }
   
-  // Add loading states for iframes
+  // Load weather iframe only for real users (not crawlers/bots)
   document.addEventListener('DOMContentLoaded', function() {
-    const iframes = document.querySelectorAll('iframe');
+    // Check if this is likely a crawler/bot
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isBot = /bot|crawler|spider|crawling|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegram|slackbot|discord|googlebot|bingbot|yahoo|duckduckbot|baiduspider|yandexbot|applebot|ia_archiver|curl|wget|python-requests|scrapy|selenium|phantomjs|headless/i.test(userAgent);
+    
+    if (!isBot && 'IntersectionObserver' in window) {
+      // Use Intersection Observer to load weather when it comes into view
+      const weatherIframe = document.querySelector('.weather-iframe');
+      if (weatherIframe && weatherIframe.dataset.src) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting && !entry.target.src) {
+              entry.target.src = entry.target.dataset.src;
+              observer.unobserve(entry.target);
+            }
+          });
+        }, {
+          rootMargin: '50px' // Load when within 50px of viewport
+        });
+        observer.observe(weatherIframe);
+      }
+    } else if (!isBot) {
+      // Fallback for browsers without Intersection Observer
+      setTimeout(() => {
+        const weatherIframe = document.querySelector('.weather-iframe');
+        if (weatherIframe && weatherIframe.dataset.src && !weatherIframe.src) {
+          weatherIframe.src = weatherIframe.dataset.src;
+        }
+      }, 1000);
+    }
+    
+    // Add loading states for other iframes
+    const iframes = document.querySelectorAll('iframe:not(.weather-iframe)');
     iframes.forEach(iframe => {
       const container = iframe.closest('.iframe-container');
       iframe.addEventListener('load', function() {
@@ -807,23 +887,75 @@ async function generateHtml(event) {
 </html>`;
 }
 
-// Sitemap XML generator
-function generateSitemap(slugs) {
+// Sitemap XML generator with subfolder support
+function generateSitemap(eventPaths) {
   const today = new Date().toISOString().slice(0, 10);
-  const urlset = slugs.map(slug => `
-    <url>
-      <loc>${BASE_URL}/${slug}.html</loc>
+  const urlset = eventPaths.map(eventPath => 
+    `<url>
+      <loc>${BASE_URL}/${eventPath}</loc>
       <lastmod>${today}</lastmod>
       <changefreq>monthly</changefreq>
       <priority>0.7</priority>
-    </url>
-  `).join('\n');
+    </url>`
+  ).join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urlset}
 </urlset>`;
 }
+
+// Create directory structure recursively
+function ensureDirectoryExists(dirPath) {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+}
+
+// Clean up old files and folders
+function cleanupOldStructure() {
+  try {
+    // Remove old HTML files directly in events folder
+    if (fs.existsSync(OUTPUT_DIR)) {
+      const items = fs.readdirSync(OUTPUT_DIR);
+      for (const item of items) {
+        const itemPath = path.join(OUTPUT_DIR, item);
+        const stat = fs.statSync(itemPath);
+        
+        if (stat.isFile() && item.endsWith('.html')) {
+          fs.unlinkSync(itemPath);
+          console.log(`Removed old file: ${itemPath}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.warn('Warning: Could not clean up old structure:', error.message);
+  }
+}
+
+function cleanupRemovedEvents(validSlugs) {
+  const subfolders = fs.readdirSync(OUTPUT_DIR);
+  
+  for (const folder of subfolders) {
+    const folderPath = path.join(OUTPUT_DIR, folder);
+    const stats = fs.statSync(folderPath);
+
+    if (stats.isDirectory()) {
+      const files = fs.readdirSync(folderPath);
+      for (const file of files) {
+        if (file.endsWith('.html')) {
+          const slug = path.basename(file, '.html');
+          if (!validSlugs.has(slug)) {
+            const fullPath = path.join(folderPath, file);
+            fs.unlinkSync(fullPath);
+            console.log(`Deleted old HTML: ${fullPath}`);
+          }
+        }
+      }
+    }
+  }
+}
+
 
 async function main() {
   try {
@@ -842,27 +974,80 @@ async function main() {
     }
 
     const selectedEvents = events.slice(0, MAX_EVENTS);
-    const slugs = [];
+    const eventPaths = [];
+    const folderCounts = {};
 
-    if (!fs.existsSync(OUTPUT_DIR)) {
-      fs.mkdirSync(OUTPUT_DIR);
-    }
+    // Ensure main output directory exists
+    ensureDirectoryExists(OUTPUT_DIR);
+    
+    // Clean up old structure
+    cleanupOldStructure();
+
+    // Sort events by name to ensure consistent folder distribution
+    selectedEvents.sort((a, b) => {
+      const nameA = (a.properties.eventname || '').toLowerCase();
+      const nameB = (b.properties.eventname || '').toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+
+    // Create a set of valid slugs
+const validSlugs = new Set(
+  selectedEvents.map(e => slugify(e.properties.eventname))
+);
+
+// Remove any HTMLs from disk that don't match
+cleanupRemovedEvents(validSlugs);
+
 
     for (const event of selectedEvents) {
       const slug = slugify(event.properties.eventname);
-      slugs.push(slug);
-      const filename = path.join(OUTPUT_DIR, `${slug}.html`);
-      const htmlContent = await generateHtml(event);
+      const subfolder = getSubfolder(slug);
+      
+      // Initialize folder count if not exists
+      if (!folderCounts[subfolder]) {
+        folderCounts[subfolder] = 0;
+      }
+      
+      // Check if we need to create a new subfolder due to file limit
+      let actualSubfolder = subfolder;
+      if (folderCounts[subfolder] >= MAX_FILES_PER_FOLDER) {
+        // Find next available subfolder with suffix
+        let suffix = 2;
+        while (folderCounts[`${subfolder}${suffix}`] >= MAX_FILES_PER_FOLDER) {
+          suffix++;
+        }
+        actualSubfolder = `${subfolder}${suffix}`;
+        if (!folderCounts[actualSubfolder]) {
+          folderCounts[actualSubfolder] = 0;
+        }
+      }
+      
+      const subfolderPath = path.join(OUTPUT_DIR, actualSubfolder);
+      ensureDirectoryExists(subfolderPath);
+      
+      const filename = path.join(subfolderPath, `${slug}.html`);
+      const relativePath = `${actualSubfolder}/${slug}.html`;
+      
+      eventPaths.push(relativePath);
+      folderCounts[actualSubfolder]++;
+      
+      const htmlContent = await generateHtml(event, relativePath);
       fs.writeFileSync(filename, htmlContent, 'utf-8');
-      console.log(`Generated: ${filename}`);
+      console.log(`Generated: ${filename} (${folderCounts[actualSubfolder]}/${MAX_FILES_PER_FOLDER} in ${actualSubfolder})`);
     }
 
     // Save sitemap.xml in root directory
-    const sitemapContent = generateSitemap(slugs);
+    const sitemapContent = generateSitemap(eventPaths);
     fs.writeFileSync('./sitemap.events.xml', sitemapContent, 'utf-8');
     console.log('Generated sitemap.xml in root folder.');
 
-    console.log(`Successfully generated ${selectedEvents.length} event HTML files.`);
+    // Log folder distribution
+    console.log('\nFolder distribution:');
+    Object.entries(folderCounts).forEach(([folder, count]) => {
+      console.log(`  ${folder}: ${count} files`);
+    });
+
+    console.log(`\nSuccessfully generated ${selectedEvents.length} event HTML files across ${Object.keys(folderCounts).length} folders.`);
   } catch (err) {
     console.error('Error:', err);
   }
